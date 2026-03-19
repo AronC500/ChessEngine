@@ -425,6 +425,9 @@ int Board::evaluate() {
 //what is my opponent's best response to that
 //what is my best response to their response
 //now score the board and decide
+//basically the other color counter the other(depth+1) by trying to get the highest number or lowest number depending on color.
+//lets say depth is 2, black will return smallest number(which if not, white would of prob picked a move which would have largest number than what it had to pick) 
+//which white will try to get biggest number out of it.
 int Board::minimax(int depth, bool isWhite) {
     //means we looked as far as we wanted to and we evaluate the board.
     if (depth == 0) {
@@ -474,6 +477,7 @@ Move Board::getBestMove(int depth, bool isWhite) {
     if (isWhite) {
         std::vector<Move> moves = GenerateAllMoves(1);
         
+        //later can use to check that there is no valid move.
         if (moves.size() == 0) {
             return {-1, -1, -1, -1};
         }
@@ -512,4 +516,108 @@ Move Board::getBestMove(int depth, bool isWhite) {
         }
         return bestMove;
     }
+}
+
+//check if square is being attacked by opposite color.
+bool Board::isSquareAttacked(int row, int col, bool isWhite) {
+    int color;
+    if (isWhite) {
+        color = 1;
+    } else {
+        color = -1;
+    }
+
+    int straight[4][2] = {{0,-1},{0,1},{1,0},{-1,0}};
+    int diagonal[4][2] = {{-1,-1},{1,1},{1,-1},{-1,1}};
+    int knightMoves[8][2] = {{-2,-1},{-2,1},{-1,-2},{-1,2},{1,-2},{1,2},{2,-1},{2,1}};
+    int kingMoves[8][2] = {{0,-1},{0,1},{1,0},{-1,0},{-1,-1},{1,1},{1,-1},{-1,1}};
+
+    //For checking if current position is in danger of an rook/queen (straight)
+    for (int i = 0; i < 4; i++) {
+        int r = row + straight[i][0];
+        int c = col + straight[i][1];
+        while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+            if (board[r][c] != 0) {
+                if (board[r][c] == 4 * color || board[r][c] == 5 * color)  {
+                    return true;
+                }
+                //would mean something else is blocking the enemy rook/queen so not being attacked.
+                break;
+            }
+            r += straight[i][0]; 
+            c += straight[i][1];
+        }
+    }
+
+    //For bishop/queen (diagonals)
+    for (int i = 0; i < 4; i++) {
+        int r = row + diagonal[i][0];
+        int c = col + diagonal[i][1];
+        while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+            if (board[r][c] != 0) {
+                if (board[r][c] == 3 * color || board[r][c] == 5 * color)  {
+                    return true;
+                }
+                break;
+            }
+            r += diagonal[i][0]; 
+            c += diagonal[i][1];
+        }
+    }
+
+    //knights
+    for (int i = 0; i < 8; i++) {
+        int r = row + knightMoves[i][0];
+        int c = col + knightMoves[i][1];
+        if (r >= 0 && r < 8 && c >= 0 && c < 8)
+            if (board[r][c] == 2 * color) 
+            {
+                return true;
+            }
+    }
+
+    //pawns
+    int pawnDir;
+    if (isWhite) {
+        pawnDir = -1;
+    } else {
+        pawnDir = 1;
+    }
+    if (row + pawnDir >= 0 && row + pawnDir < 8 && col - 1 >= 0 && board[row+pawnDir][col-1] == 1 * color)  {
+        return true;
+    }
+    if (row + pawnDir >= 0 && row + pawnDir < 8 && col + 1 < 8  && board[row+pawnDir][col+1] == 1 * color)  {
+        return true;
+    }
+
+    // king
+    for (int i = 0; i < 8; i++) {
+        int r = row + kingMoves[i][0];
+        int c = col + kingMoves[i][1];
+        if (r >= 0 && r < 8 && c >= 0 && c < 8)
+            if (board[r][c] == 6 * color)  {
+                return true;
+            }
+    }
+
+    return false;
+}
+
+//check if king is in check.
+bool Board::isInCheck(bool isWhite) {
+    int kingPiece;
+    if (isWhite) {
+        kingPiece = 6;
+    } else {
+        kingPiece = -6;
+    }
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (board[i][j] == kingPiece) {
+                //see if square is attacked by opposite color.
+                return isSquareAttacked(i, j, !isWhite);
+            }
+        }
+    }
+    return false;
 }

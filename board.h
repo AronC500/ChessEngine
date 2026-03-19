@@ -18,7 +18,8 @@ class Board {
         int evaluate();
         int minimax(int depth, bool isWhite);
         Move getBestMove(int depth, bool isWhite);
-
+        bool isSquareAttacked(int row, int col, bool isWhite);
+        bool isInCheck(bool isWhite);
 
         std::vector<Move> getPawnMoves(int row, int col);
         std::vector<Move> getKnightMoves(int row, int col);
