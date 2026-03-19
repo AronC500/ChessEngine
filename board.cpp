@@ -415,5 +415,101 @@ int Board::evaluate() {
         }
     }
     return count;
+}
 
+//find best possible score of whole board after looking ahead certain number of moves. when it is white's turn,
+//it tries to make the highest score and when it's black turn, it tries every possible black move to find the lowest score.
+//depth param is how many moves ahead the engine looks. 
+//depth 3 would mean 
+//what is my best move
+//what is my opponent's best response to that
+//what is my best response to their response
+//now score the board and decide
+int Board::minimax(int depth, bool isWhite) {
+    //means we looked as far as we wanted to and we evaluate the board.
+    if (depth == 0) {
+        return evaluate();
+    }
+
+    //check whose turn it is. if it is white, we create bestscore to be a really small number because 
+    //we want any real score we find to be better than this starting value.
+    if (isWhite) {
+        int bestScore = -9999999;
+        //generate the moves first.
+        std::vector<Move> moves = GenerateAllMoves(1);
+        for (int i = 0; i < moves.size(); i++) {
+            //before we make the move, we save the piece that is currently sitting on the square we are about to move to.
+            int capturedPiece = board[moves[i].toRow][moves[i].toCol];
+            //we apply the move.
+            makeMove(moves[i]);
+            //since we made the move, it is black's turn with depth minus 1 since we used up one. this will try all of black possible response
+            //and return best score black can achieve.
+            int score = minimax(depth - 1, false);
+            //after we got the score, we undo the move.
+            undoMove(moves[i], capturedPiece);
+            //compare the score we just got from this move to best score we have found so far.
+            if (score > bestScore) {
+                bestScore = score;
+            }
+        }
+        return bestScore;
+    } else {
+        int bestScore = 9999999;
+        std::vector<Move> moves = GenerateAllMoves(-1);
+        for (int i = 0; i < moves.size(); i++) {
+            int capturedPiece = board[moves[i].toRow][moves[i].toCol];
+            makeMove(moves[i]);
+            int score = minimax(depth - 1, true);
+            undoMove(moves[i], capturedPiece);
+            if (score < bestScore) {
+                bestScore = score;
+            }
+        }
+        return bestScore;
+    }
+}
+
+//similar to minimax but instead of returning a score it returns the actual best move to play. 
+Move Board::getBestMove(int depth, bool isWhite) {
+    if (isWhite) {
+        std::vector<Move> moves = GenerateAllMoves(1);
+        
+        if (moves.size() == 0) {
+            return {-1, -1, -1, -1};
+        }
+        
+        int bestScore = -9999999;
+        Move bestMove = moves[0];
+        for (int i = 0; i < moves.size(); i++) {
+            int capturedPiece = board[moves[i].toRow][moves[i].toCol];
+            makeMove(moves[i]);
+            int score = minimax(depth, false);
+            undoMove(moves[i], capturedPiece);
+            if (score > bestScore) {
+                bestScore = score;
+                bestMove = moves[i];
+            }
+        }
+        return bestMove;
+    } else {
+        std::vector<Move> moves = GenerateAllMoves(-1);
+        
+        if (moves.size() == 0) {
+            return {-1, -1, -1, -1};
+        }
+        
+        int bestScore = 9999999;
+        Move bestMove = moves[0];
+        for (int i = 0; i < moves.size(); i++) {
+            int capturedPiece = board[moves[i].toRow][moves[i].toCol];
+            makeMove(moves[i]);
+            int score = minimax(depth, true);
+            undoMove(moves[i], capturedPiece);
+            if (score < bestScore) {
+                bestScore = score;
+                bestMove = moves[i];
+            }
+        }
+        return bestMove;
+    }
 }

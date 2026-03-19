@@ -16,6 +16,9 @@ class Board {
         void makeMove(Move m);
         void undoMove(Move m, int capturedPiece);
         int evaluate();
+        int minimax(int depth, bool isWhite);
+        Move getBestMove(int depth, bool isWhite);
+
 
         std::vector<Move> getPawnMoves(int row, int col);
         std::vector<Move> getKnightMoves(int row, int col);
