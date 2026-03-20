@@ -20,6 +20,10 @@ class Board {
         Move getBestMove(int depth, bool isWhite);
         bool isSquareAttacked(int row, int col, bool isWhite);
         bool isInCheck(bool isWhite);
+        bool isDraw(bool isWhite);
+        bool isGameOver(bool isWhite);
+        bool hasLegalMoves(bool isWhite);
+
 
         std::vector<Move> getPawnMoves(int row, int col);
         std::vector<Move> getKnightMoves(int row, int col);
@@ -31,6 +35,9 @@ class Board {
 
     private:
         int board[8][8];
+        //a full move consist of two half move and if there is 50 full move with no pawn moving or
+        //and no piece being captured, game is draw.
+        int halfMoveCount = 0;
 
 };
 

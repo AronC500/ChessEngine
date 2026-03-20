@@ -357,8 +357,29 @@ std::vector<Move> Board::GenerateAllMoves(int color) {
 //make move to the board. move piece from the from square to the to square and set the from square to 0.
 void Board::makeMove(Move m) {
     int piece = board[m.fromRow][m.fromCol];
+
+    //a full move consist of two half move and if there is 50 full move with no pawn moving or
+    //and no piece being captured, game is draw.
+    if (abs(piece) == 1 || board[m.toRow][m.toCol] != 0) {
+        halfMoveCount = 0;
+    } else {
+        halfMoveCount++;
+    }
+
     board[m.toRow][m.toCol] = piece;
     board[m.fromRow][m.fromCol] = 0;
+
+        //pawn promotion for white
+    if (piece == 1 && m.toRow == 0) {
+        board[m.toRow][m.toCol] = 5; 
+    }
+    //for black
+    if (piece == -1 && m.toRow == 7) {
+        board[m.toRow][m.toCol] = -5; 
+    }
+    
+
+
 }
 
 //reverse a move. puts the piece back on the from square and restore captured piece on the to square.
@@ -445,6 +466,11 @@ int Board::minimax(int depth, bool isWhite) {
             int capturedPiece = board[moves[i].toRow][moves[i].toCol];
             //we apply the move.
             makeMove(moves[i]);
+            //filter move that make king in check.
+            if (isInCheck(true)) {
+                undoMove(moves[i], capturedPiece);
+                continue;
+            }
             //since we made the move, it is black's turn with depth minus 1 since we used up one. this will try all of black possible response
             //and return best score black can achieve.
             int score = minimax(depth - 1, false);
@@ -462,6 +488,10 @@ int Board::minimax(int depth, bool isWhite) {
         for (int i = 0; i < moves.size(); i++) {
             int capturedPiece = board[moves[i].toRow][moves[i].toCol];
             makeMove(moves[i]);
+            if (isInCheck(false)) {
+                undoMove(moves[i], capturedPiece);
+                continue;
+            }
             int score = minimax(depth - 1, true);
             undoMove(moves[i], capturedPiece);
             if (score < bestScore) {
@@ -477,16 +507,15 @@ Move Board::getBestMove(int depth, bool isWhite) {
     if (isWhite) {
         std::vector<Move> moves = GenerateAllMoves(1);
         
-        //later can use to check that there is no valid move.
-        if (moves.size() == 0) {
-            return {-1, -1, -1, -1};
-        }
-        
         int bestScore = -9999999;
         Move bestMove = moves[0];
         for (int i = 0; i < moves.size(); i++) {
             int capturedPiece = board[moves[i].toRow][moves[i].toCol];
             makeMove(moves[i]);
+            if (isInCheck(true)) {
+                undoMove(moves[i], capturedPiece);
+                continue;
+            }
             int score = minimax(depth, false);
             undoMove(moves[i], capturedPiece);
             if (score > bestScore) {
@@ -498,15 +527,15 @@ Move Board::getBestMove(int depth, bool isWhite) {
     } else {
         std::vector<Move> moves = GenerateAllMoves(-1);
         
-        if (moves.size() == 0) {
-            return {-1, -1, -1, -1};
-        }
-        
         int bestScore = 9999999;
         Move bestMove = moves[0];
         for (int i = 0; i < moves.size(); i++) {
             int capturedPiece = board[moves[i].toRow][moves[i].toCol];
             makeMove(moves[i]);
+            if (isInCheck(false)) {
+                undoMove(moves[i], capturedPiece);
+                continue;
+            }
             int score = minimax(depth, true);
             undoMove(moves[i], capturedPiece);
             if (score < bestScore) {
@@ -518,7 +547,7 @@ Move Board::getBestMove(int depth, bool isWhite) {
     }
 }
 
-//check if square is being attacked by opposite color.
+//check if square is being attacked by color.
 bool Board::isSquareAttacked(int row, int col, bool isWhite) {
     int color;
     if (isWhite) {
@@ -619,5 +648,40 @@ bool Board::isInCheck(bool isWhite) {
             }
         }
     }
+    return false;
+}
+
+
+//Stalemate = not in check + no legal moves 
+//Fifty move rule = 100 half moves with no pawn move or capture 
+bool Board::isDraw(bool isWhite) {
+    return halfMoveCount == 100 || (isInCheck(isWhite) == false &&  hasLegalMoves(isWhite) == false);
+}
+
+//Checkmate = in check + no legal moves.
+bool Board::isGameOver(bool isWhite) {
+    return  (isInCheck(isWhite) == true && hasLegalMoves(isWhite) == false);
+}
+
+
+//check if have legal move by going through all possible moves. and seeing if one move can make it so you are not in check.
+bool Board::hasLegalMoves(bool isWhite) {
+     int color;
+    if (isWhite) {
+        color = 1;
+    }
+    else {
+        color = -1;
+    }
+    std::vector<Move> AllMoves = GenerateAllMoves(color);
+    for (int i = 0; i < AllMoves.size();i++) {
+        int capturedPiece = board[AllMoves[i].toRow][AllMoves[i].toCol];
+        makeMove(AllMoves[i]);
+        if (!isInCheck(isWhite)) {
+            undoMove(AllMoves[i], capturedPiece);
+            return true;
+        }   
+        undoMove(AllMoves[i], capturedPiece);
+    } 
     return false;
 }
