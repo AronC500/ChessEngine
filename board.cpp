@@ -318,8 +318,46 @@ void Board::makeMove(Move m) {
             EnPassantCol = m.fromCol;
         }
     }
+
+    //black castling
+    if (piece == -6) {
+        if (BlackQueenSideRookMoved == false && BlackKingMoved == false && m.toCol == 2 && m.toRow == 7) {
+
+            board[0][3] = 4;
+            board[0][0] = 0;
+        }
+        
+        else if (BlackKingSideRookMoved == false && BlackKingMoved == false && m.toCol == 6 && m.toRow == 7)  {
+            board[0][5] = 4;
+            board[0][7] = 0;
+        }
+    }
     board[m.toRow][m.toCol] = piece;
     board[m.fromRow][m.fromCol] = 0;
+    //white king move
+    if (piece == 6) {
+        WhiteKingMoved = true;
+    }
+    //white rook queen side
+    if (piece == 4 && m.fromRow == 7 && m.fromCol == 0) {
+        WhiteQueenSideRookMoved = true;
+    }
+    //white rook king side
+    if (piece == 4 && m.fromRow == 7 && m.fromCol == 7) {
+        WhiteKingSideRookMoved = true;
+    }
+    //black king move
+    if (piece == -6) {
+        BlackKingMoved = true;
+    }
+    //black rook queen side
+    if (piece == -4 && m.fromRow == 0 && m.fromCol == 0) {
+        BlackQueenSideRookMoved = true;
+    }
+    //black rook king side
+    if (piece == -4 && m.fromRow == 0 && m.fromCol == 7) {
+        BlackKingSideRookMoved = true;
+    }
     //pawn promotion for white
     if (piece == 1 && m.toRow == 0) {
         board[m.toRow][m.toCol] = 5;
@@ -373,7 +411,6 @@ int Board::minimax(int depth, bool isWhite) {
     if (depth == 0) {
         return evaluate();
     }
-
     if (isWhite) {
         int bestScore = -9999999;
         std::vector<Move> moves = GenerateAllMoves(1);
@@ -389,6 +426,12 @@ int Board::minimax(int depth, bool isWhite) {
             int savedHalfMove = halfMoveCount;
             int savedEPRow = EnPassantRow;
             int savedEPCol = EnPassantCol;
+            bool savedWhiteKingMoved = WhiteKingMoved;
+            bool savedWhiteKingSideRookMoved = WhiteKingSideRookMoved;
+            bool savedWhiteQueenSideRookMoved = WhiteQueenSideRookMoved;
+            bool savedBlackKingMoved = BlackKingMoved;
+            bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
+            bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
 
             int capturedPiece = board[moves[i].toRow][moves[i].toCol];
             makeMove(moves[i]);
@@ -398,6 +441,12 @@ int Board::minimax(int depth, bool isWhite) {
                 halfMoveCount = savedHalfMove;
                 EnPassantRow = savedEPRow;
                 EnPassantCol = savedEPCol;
+                WhiteKingMoved = savedWhiteKingMoved;
+                WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+                WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+                BlackKingMoved = savedBlackKingMoved;
+                BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+                BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
                 continue;
             }
             int score = minimax(depth - 1, false);
@@ -406,6 +455,12 @@ int Board::minimax(int depth, bool isWhite) {
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
             EnPassantCol = savedEPCol;
+            WhiteKingMoved = savedWhiteKingMoved;
+            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+            BlackKingMoved = savedBlackKingMoved;
+            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
 
             if (score > bestScore) {
                 bestScore = score;
@@ -426,6 +481,12 @@ int Board::minimax(int depth, bool isWhite) {
             int savedHalfMove = halfMoveCount;
             int savedEPRow = EnPassantRow;
             int savedEPCol = EnPassantCol;
+            bool savedWhiteKingMoved = WhiteKingMoved;
+            bool savedWhiteKingSideRookMoved = WhiteKingSideRookMoved;
+            bool savedWhiteQueenSideRookMoved = WhiteQueenSideRookMoved;
+            bool savedBlackKingMoved = BlackKingMoved;
+            bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
+            bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
 
             int capturedPiece = board[moves[i].toRow][moves[i].toCol];
             makeMove(moves[i]);
@@ -434,6 +495,12 @@ int Board::minimax(int depth, bool isWhite) {
                 halfMoveCount = savedHalfMove;
                 EnPassantRow = savedEPRow;
                 EnPassantCol = savedEPCol;
+                WhiteKingMoved = savedWhiteKingMoved;
+                WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+                WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+                BlackKingMoved = savedBlackKingMoved;
+                BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+                BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
                 continue;
             }
             int score = minimax(depth - 1, true);
@@ -441,6 +508,12 @@ int Board::minimax(int depth, bool isWhite) {
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
             EnPassantCol = savedEPCol;
+            WhiteKingMoved = savedWhiteKingMoved;
+            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+            BlackKingMoved = savedBlackKingMoved;
+            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
 
             if (score < bestScore) {
                 bestScore = score;
@@ -470,6 +543,12 @@ Move Board::getBestMove(int depth, bool isWhite) {
             int savedHalfMove = halfMoveCount;
             int savedEPRow = EnPassantRow;
             int savedEPCol = EnPassantCol;
+            bool savedWhiteKingMoved = WhiteKingMoved;
+            bool savedWhiteKingSideRookMoved = WhiteKingSideRookMoved;
+            bool savedWhiteQueenSideRookMoved = WhiteQueenSideRookMoved;
+            bool savedBlackKingMoved = BlackKingMoved;
+            bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
+            bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
 
             int capturedPiece = board[moves[i].toRow][moves[i].toCol];
             makeMove(moves[i]);
@@ -510,6 +589,12 @@ Move Board::getBestMove(int depth, bool isWhite) {
             int savedHalfMove = halfMoveCount;
             int savedEPRow = EnPassantRow;
             int savedEPCol = EnPassantCol;
+            bool savedWhiteKingMoved = WhiteKingMoved;
+            bool savedWhiteKingSideRookMoved = WhiteKingSideRookMoved;
+            bool savedWhiteQueenSideRookMoved = WhiteQueenSideRookMoved;
+            bool savedBlackKingMoved = BlackKingMoved;
+            bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
+            bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
 
             int capturedPiece = board[moves[i].toRow][moves[i].toCol];
             makeMove(moves[i]);
@@ -518,6 +603,11 @@ Move Board::getBestMove(int depth, bool isWhite) {
                 halfMoveCount = savedHalfMove;
                 EnPassantRow = savedEPRow;
                 EnPassantCol = savedEPCol;
+                WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+                WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+                BlackKingMoved = savedBlackKingMoved;
+                BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+                BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
                 continue;
             }
             int score = minimax(depth, true);
@@ -525,6 +615,11 @@ Move Board::getBestMove(int depth, bool isWhite) {
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
             EnPassantCol = savedEPCol;
+            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+            BlackKingMoved = savedBlackKingMoved;
+            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
 
             if (score < bestScore) {
                 bestScore = score;
@@ -665,6 +760,12 @@ bool Board::hasLegalMoves(bool isWhite) {
         int savedHalfMove = halfMoveCount;
         int savedEPRow = EnPassantRow;
         int savedEPCol = EnPassantCol;
+        bool savedWhiteKingMoved = WhiteKingMoved;
+        bool savedWhiteKingSideRookMoved = WhiteKingSideRookMoved;
+        bool savedWhiteQueenSideRookMoved = WhiteQueenSideRookMoved;
+        bool savedBlackKingMoved = BlackKingMoved;
+        bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
+        bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
 
         int capturedPiece = board[AllMoves[i].toRow][AllMoves[i].toCol];
         makeMove(AllMoves[i]);
@@ -673,12 +774,22 @@ bool Board::hasLegalMoves(bool isWhite) {
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
             EnPassantCol = savedEPCol;
+            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+            BlackKingMoved = savedBlackKingMoved;
+            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
             return true;
         }
         undoMove(AllMoves[i], capturedPiece, passRow, passCol);
         halfMoveCount = savedHalfMove;
         EnPassantRow = savedEPRow;
         EnPassantCol = savedEPCol;
+        WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+        WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+        BlackKingMoved = savedBlackKingMoved;
+        BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+        BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
     }
     return false;
 }

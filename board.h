@@ -14,7 +14,7 @@ class Board {
         Board();
         void print();
         void makeMove(Move m);
-        void undoMove(Move m, int capturedPiece);
+        void undoMove(Move m, int capturedPiece, int enPassantCaptureRow, int enPassantCaptureCol);
         int evaluate();
         int minimax(int depth, bool isWhite);
         Move getBestMove(int depth, bool isWhite);
@@ -38,6 +38,19 @@ class Board {
         //a full move consist of two half move and if there is 50 full move with no pawn moving or
         //and no piece being captured, game is draw.
         int halfMoveCount = 0;
+        int EnPassantRow = -1;
+        int EnPassantCol = -1;
+        //these one are for passing in UndoMove
+        int passRow = -1;
+        int passCol = -1;
+
+        //variables for castling
+        bool WhiteKingMoved = false;
+        bool WhiteKingSideRookMoved = false;
+        bool WhiteQueenSideRookMoved = false;
+        bool BlackKingMoved = false;
+        bool BlackKingSideRookMoved = false;
+        bool BlackQueenSideRookMoved = false;
 
 };
 
