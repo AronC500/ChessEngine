@@ -253,10 +253,38 @@ std::vector<Move> Board::getKingMoves(int row, int col) {
             else if (piece == -6 && board[newRow][newCol] >= 0) {
                 moves.push_back({row,col,newRow,newCol});
             }
+        
         }
     }
+    //black
+    if (piece == -6) {
+        //king side, check if on right side is empty and no pieces between and if havent moved.
+        if (BlackKingMoved == false && BlackKingSideRookMoved == false && board[0][5] == 0 && board[0][6] == 0 && !isInCheck(false) && !isSquareAttacked(0, 5, true) && !isSquareAttacked(0, 6, true)) {
+            moves.push_back({0, 4, 0, 6});
+        }
+        //queen side
+        if (BlackKingMoved == false && BlackQueenSideRookMoved == false && board[0][2] == 0 && board[0][3] == 0 &&  board[0][1] == 0 && !isInCheck(false) && !isSquareAttacked(0, 3, true) && !isSquareAttacked(0, 2, true)) {
+            moves.push_back({0, 4, 0, 2});
+        }
+
+    }
+    //white
+    if (piece == 6) {
+        //king side, check if on right side is empty and no pieces between and if havent moved.
+        if (WhiteKingMoved == false && WhiteKingSideRookMoved == false && board[7][5] == 0 && board[7][6] == 0 && !isInCheck(true) && !isSquareAttacked(7, 5, false) && !isSquareAttacked(7, 6, false)) {
+            moves.push_back({7, 4, 7, 6});
+        }
+        //queen side
+        if (WhiteKingMoved == false && WhiteQueenSideRookMoved == false && board[7][2] == 0 && board[7][3] == 0 &&  board[7][1] == 0 &&  !isInCheck(true) && !isSquareAttacked(7, 3, false) && !isSquareAttacked(7, 2, false)) {
+            moves.push_back({7, 4, 7, 2});
+        }
+
+    }
+
     return moves;
 }
+
+
 
 std::vector<Move> Board::GenerateAllMoves(int color) {
     std::vector<Move> moves;
@@ -319,24 +347,22 @@ void Board::makeMove(Move m) {
         }
     }
 
-    //black castling
-    if (piece == -6) {
-        if (BlackQueenSideRookMoved == false && BlackKingMoved == false && m.toCol == 2 && m.toRow == 7) {
-
-            board[0][3] = 4;
-            board[0][0] = 0;
-        }
-        
-        else if (BlackKingSideRookMoved == false && BlackKingMoved == false && m.toCol == 6 && m.toRow == 7)  {
-            board[0][5] = 4;
-            board[0][7] = 0;
-        }
-    }
     board[m.toRow][m.toCol] = piece;
     board[m.fromRow][m.fromCol] = 0;
     //white king move
     if (piece == 6) {
         WhiteKingMoved = true;
+        //move rook to other side adjacent of king.
+        if (m.fromCol == 4 && m.fromRow == 7 && m.toCol == 2 && m.toRow == 7) {
+            board[7][0] = 0;
+            board[7][3] = 4;
+            WhiteQueenSideRookMoved = true; 
+        }
+        if (m.fromCol == 4 && m.fromRow == 7 && m.toCol == 6 && m.toRow == 7) {
+            board[7][7] = 0;
+            board[7][5] = 4;
+            WhiteKingSideRookMoved = true;
+        }
     }
     //white rook queen side
     if (piece == 4 && m.fromRow == 7 && m.fromCol == 0) {
@@ -346,10 +372,22 @@ void Board::makeMove(Move m) {
     if (piece == 4 && m.fromRow == 7 && m.fromCol == 7) {
         WhiteKingSideRookMoved = true;
     }
-    //black king move
+    //black castling
     if (piece == -6) {
         BlackKingMoved = true;
+        // queenside castling
+        if (m.fromCol == 4 && m.fromRow == 0 && m.toCol == 2 && m.toRow == 0) {
+            board[0][0] = 0;
+            board[0][3] = -4;
+            BlackQueenSideRookMoved = true;
+        }
+        // kingside castling
+        if (m.fromCol == 4 && m.fromRow == 0 && m.toCol == 6 && m.toRow == 0) {
+            board[0][7] = 0;
+            board[0][5] = -4;
+            BlackKingSideRookMoved = true;
     }
+}   
     //black rook queen side
     if (piece == -4 && m.fromRow == 0 && m.fromCol == 0) {
         BlackQueenSideRookMoved = true;

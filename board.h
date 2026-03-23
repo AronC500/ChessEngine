@@ -5,8 +5,10 @@
 
 //need because we need to generate all possible move and store them in vector and pick the best one.
 struct Move {
-    int fromRow, fromCol;
-    int toRow, toCol;
+    int fromRow;
+    int fromCol;
+    int toRow;
+    int toCol;
 };
 
 class Board {
