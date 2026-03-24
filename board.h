@@ -25,7 +25,7 @@ class Board {
         bool isDraw(bool isWhite);
         bool isGameOver(bool isWhite);
         bool hasLegalMoves(bool isWhite);
-
+        int pieceToIndex(int piece);
 
         std::vector<Move> getPawnMoves(int row, int col);
         std::vector<Move> getKnightMoves(int row, int col);
@@ -53,6 +53,13 @@ class Board {
         bool BlackKingMoved = false;
         bool BlackKingSideRookMoved = false;
         bool BlackQueenSideRookMoved = false;
+
+        //12 different pieces(6 black and 6 white) and there is 8 row and 8 columns.
+        //we use unsigned(only positive) 64 bit because 32 bit (normal int is too small) and 64 bit makes it less likely to have collision
+        //we want hash to have enough possible value that two different position almost never produce the same hash number.
+        uint64_t RandomTable[12][8][8];
+        uint64_t currentHash = 0;
+        std::vector<uint64_t> positionHistory;
 
 };
 

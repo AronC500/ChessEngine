@@ -1,5 +1,6 @@
 #include "board.h"
 #include <iostream>
+#include <random>
 
 Board::Board() {
     for (int i = 0; i < 8; i++) {
@@ -37,6 +38,34 @@ Board::Board() {
     for (int i = 0; i < 8; i++) {
         board[1][i] = -1;
     }
+
+    //69420 is seed and mt19937_64 is a specific algo that generate high quality random 64-bit number.
+    std::mt19937_64 rng(69420); 
+    for (int i = 0; i < 12; i++) {
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                //give you next random 64-bit number in sequence so never same number twice.
+                //each slot needs a unique number so that each piece/square combo
+                //contributes something different to the hash when XORed together.
+                //Because if two different piece/square combos contributed the same thing to the hash,
+                //moving a piece between those two squares would cancel out and the hash wouldn't change.
+                //For threefold repetition this means the engine might think a position repeated when the
+                //pieces are actually in completely different places
+                RandomTable[i][row][col] = rng();
+            }
+        }
+    }
+    
+    //compute board initial hash.
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (board[i][j] != 0) {
+                currentHash = currentHash ^ RandomTable[pieceToIndex(board[i][j])][i][j];
+            }
+        }
+    }
+    positionHistory.push_back(currentHash);
+
 }
 
 void Board::print() {
@@ -321,9 +350,12 @@ std::vector<Move> Board::GenerateAllMoves(int color) {
 //make move to the board. move piece from the from square to the to square and set the from square to 0.
 void Board::makeMove(Move m) {
     int piece = board[m.fromRow][m.fromCol];
+    currentHash ^= RandomTable[pieceToIndex(piece)][m.fromRow][m.fromCol];
     //capture en passant piece
     if (EnPassantRow != -1 && EnPassantCol != -1 && abs(piece) == 1 && (m.toRow == EnPassantRow && m.toCol == EnPassantCol)) {
+        int capturedPawn = board[m.fromRow][EnPassantCol];
         board[m.fromRow][EnPassantCol] = 0;
+        currentHash ^= RandomTable[pieceToIndex(capturedPawn)][m.fromRow][EnPassantCol];
     }
     EnPassantRow = -1;
     EnPassantCol = -1;
@@ -347,19 +379,28 @@ void Board::makeMove(Move m) {
         }
     }
 
+    if (board[m.toRow][m.toCol] != 0) {
+        currentHash ^= RandomTable[pieceToIndex(board[m.toRow][m.toCol])][m.toRow][m.toCol];
+    }
     board[m.toRow][m.toCol] = piece;
+    currentHash ^= RandomTable[pieceToIndex(piece)][m.toRow][m.toCol];
     board[m.fromRow][m.fromCol] = 0;
     //white king move
     if (piece == 6) {
         WhiteKingMoved = true;
         //move rook to other side adjacent of king.
         if (m.fromCol == 4 && m.fromRow == 7 && m.toCol == 2 && m.toRow == 7) {
+            currentHash ^= RandomTable[pieceToIndex(4)][7][0]; 
             board[7][0] = 0;
+            currentHash ^= RandomTable[pieceToIndex(4)][7][3]; 
             board[7][3] = 4;
             WhiteQueenSideRookMoved = true; 
+
         }
         if (m.fromCol == 4 && m.fromRow == 7 && m.toCol == 6 && m.toRow == 7) {
+            currentHash ^= RandomTable[pieceToIndex(4)][7][7]; 
             board[7][7] = 0;
+            currentHash ^= RandomTable[pieceToIndex(4)][7][5]; 
             board[7][5] = 4;
             WhiteKingSideRookMoved = true;
         }
@@ -377,13 +418,17 @@ void Board::makeMove(Move m) {
         BlackKingMoved = true;
         // queenside castling
         if (m.fromCol == 4 && m.fromRow == 0 && m.toCol == 2 && m.toRow == 0) {
+            currentHash ^= RandomTable[pieceToIndex(-4)][0][0]; 
             board[0][0] = 0;
+            currentHash ^= RandomTable[pieceToIndex(-4)][0][3]; 
             board[0][3] = -4;
             BlackQueenSideRookMoved = true;
         }
         // kingside castling
         if (m.fromCol == 4 && m.fromRow == 0 && m.toCol == 6 && m.toRow == 0) {
+            currentHash ^= RandomTable[pieceToIndex(-4)][0][7]; 
             board[0][7] = 0;
+            currentHash ^= RandomTable[pieceToIndex(-4)][0][5]; 
             board[0][5] = -4;
             BlackKingSideRookMoved = true;
     }
@@ -398,22 +443,49 @@ void Board::makeMove(Move m) {
     }
     //pawn promotion for white
     if (piece == 1 && m.toRow == 0) {
+        currentHash ^= RandomTable[pieceToIndex(piece)][m.toRow][m.toCol];
         board[m.toRow][m.toCol] = 5;
+        currentHash ^= RandomTable[pieceToIndex(board[m.toRow][m.toCol])][m.toRow][m.toCol];
     }
     //for black
     if (piece == -1 && m.toRow == 7) {
+        currentHash ^= RandomTable[pieceToIndex(piece)][m.toRow][m.toCol];
         board[m.toRow][m.toCol] = -5;
+        currentHash ^= RandomTable[pieceToIndex(board[m.toRow][m.toCol])][m.toRow][m.toCol];
     }
+    positionHistory.push_back(currentHash);
 }
 
 //reverse a move. puts the piece back on the from square and restore captured piece on the to square.
 void Board::undoMove(Move m, int capturedPiece, int enPassantCaptureRow, int enPassantCaptureCol) {
-    board[m.fromRow][m.fromCol] = board[m.toRow][m.toCol];
-    if (enPassantCaptureCol != -1 && enPassantCaptureRow != -1 && abs(board[m.toRow][m.toCol]) == 1) {
+    int piece = board[m.toRow][m.toCol];
+    board[m.fromRow][m.fromCol] = piece;
+    if (enPassantCaptureCol != -1 && enPassantCaptureRow != -1 && abs(piece) == 1) {
         board[enPassantCaptureRow][enPassantCaptureCol] = capturedPiece;
     } else {
         board[m.toRow][m.toCol] = capturedPiece;
     }
+    //undo white castling
+    if (piece == 6 && m.fromCol == 4 && m.toCol == 6) { 
+        board[7][7] = 4; 
+        board[7][5] = 0; 
+    }
+    if (piece == 6 && m.fromCol == 4 && m.toCol == 2) { 
+        board[7][0] = 4; 
+        board[7][3] = 0; 
+    }
+    //undo black castling
+    if (piece == -6 && m.fromCol == 4 && m.toCol == 6) { 
+        board[0][7] = -4; 
+        board[0][5] = 0; 
+    }
+    if (piece == -6 && m.fromCol == 4 && m.toCol == 2) { 
+        board[0][0] = -4; 
+        board[0][3] = 0; 
+    }
+    //remove last hash and restore to previous hash before the move.
+    positionHistory.pop_back();
+    currentHash = positionHistory[positionHistory.size()-1];
 }
 
 //return a score base on board. positive mean white is winning and negative mean black is winning.
@@ -595,6 +667,12 @@ Move Board::getBestMove(int depth, bool isWhite) {
                 halfMoveCount = savedHalfMove;
                 EnPassantRow = savedEPRow;
                 EnPassantCol = savedEPCol;
+                WhiteKingMoved = savedWhiteKingMoved;
+                WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+                WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+                BlackKingMoved = savedBlackKingMoved;
+                BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+                BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
                 continue;
             }
             int score = minimax(depth, false);
@@ -602,6 +680,12 @@ Move Board::getBestMove(int depth, bool isWhite) {
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
             EnPassantCol = savedEPCol;
+            WhiteKingMoved = savedWhiteKingMoved;
+            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+            BlackKingMoved = savedBlackKingMoved;
+            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
 
             if (score > bestScore) {
                 bestScore = score;
@@ -641,6 +725,7 @@ Move Board::getBestMove(int depth, bool isWhite) {
                 halfMoveCount = savedHalfMove;
                 EnPassantRow = savedEPRow;
                 EnPassantCol = savedEPCol;
+                WhiteKingMoved = savedWhiteKingMoved;
                 WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
                 WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
                 BlackKingMoved = savedBlackKingMoved;
@@ -653,6 +738,7 @@ Move Board::getBestMove(int depth, bool isWhite) {
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
             EnPassantCol = savedEPCol;
+            WhiteKingMoved = savedWhiteKingMoved;
             WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
             WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
             BlackKingMoved = savedBlackKingMoved;
@@ -770,6 +856,16 @@ bool Board::isInCheck(bool isWhite) {
 //Stalemate = not in check + no legal moves
 //Fifty move rule = 100 half moves with no pawn move or capture
 bool Board::isDraw(bool isWhite) {
+    int count = 0;
+    //same position occurs 3 or more time.
+    for (int i = 0; i < positionHistory.size();i++) {
+        if (currentHash == positionHistory[i]) {
+            count++;
+        }
+        if (count >= 3) {
+            return true;
+        }
+    }
     return halfMoveCount == 100 || (!isInCheck(isWhite) && !hasLegalMoves(isWhite));
 }
 
@@ -812,6 +908,7 @@ bool Board::hasLegalMoves(bool isWhite) {
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
             EnPassantCol = savedEPCol;
+            WhiteKingMoved = savedWhiteKingMoved;
             WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
             WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
             BlackKingMoved = savedBlackKingMoved;
@@ -823,6 +920,7 @@ bool Board::hasLegalMoves(bool isWhite) {
         halfMoveCount = savedHalfMove;
         EnPassantRow = savedEPRow;
         EnPassantCol = savedEPCol;
+        WhiteKingMoved = savedWhiteKingMoved;
         WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
         WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
         BlackKingMoved = savedBlackKingMoved;
@@ -830,4 +928,36 @@ bool Board::hasLegalMoves(bool isWhite) {
         BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
     }
     return false;
+}
+
+//for when you get board square current piece and can use that as index in randomTable to get that piece's random number
+int pieceToIndex(int piece) {
+    switch(piece) {
+        case 1:  
+            return 0;  //white pawn
+        case 2:  
+            return 1;  //white knight
+        case 3:  
+            return 2;  //white bishop
+        case 4:  
+            return 3;  //white rook
+        case 5:  
+            return 4;  //white queen
+        case 6:  
+            return 5;  //white king
+        case -1: 
+            return 6;  //black pawn
+        case -2: 
+            return 7;  //black knight
+        case -3: 
+            return 8;  //black bishop
+        case -4: 
+            return 9;  //black rook
+        case -5: 
+            return 10; //black queen
+        case -6: 
+            return 11; //black king
+        default: 
+            return -1; //empty square
+    }
 }
