@@ -44,7 +44,7 @@ Board::Board() {
     for (int i = 0; i < 12; i++) {
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
-                //give you next random 64-bit number in sequence so never same number twice.
+                //give you next random 64-bit number.
                 //each slot needs a unique number so that each piece/square combo
                 //contributes something different to the hash when XORed together.
                 //Because if two different piece/square combos contributed the same thing to the hash,
@@ -353,9 +353,8 @@ void Board::makeMove(Move m) {
     currentHash ^= RandomTable[pieceToIndex(piece)][m.fromRow][m.fromCol];
     //capture en passant piece
     if (EnPassantRow != -1 && EnPassantCol != -1 && abs(piece) == 1 && (m.toRow == EnPassantRow && m.toCol == EnPassantCol)) {
-        int capturedPawn = board[m.fromRow][EnPassantCol];
+        currentHash ^= RandomTable[pieceToIndex(board[m.fromRow][EnPassantCol])][m.fromRow][EnPassantCol];
         board[m.fromRow][EnPassantCol] = 0;
-        currentHash ^= RandomTable[pieceToIndex(capturedPawn)][m.fromRow][EnPassantCol];
     }
     EnPassantRow = -1;
     EnPassantCol = -1;
@@ -516,7 +515,7 @@ int Board::evaluate() {
 //find best possible score of whole board after looking ahead certain number of moves. when it is white's turn,
 //it tries to make the highest score and when it's black turn, it tries every possible black move to find the lowest score.
 //depth param is how many moves ahead the engine looks.
-int Board::minimax(int depth, bool isWhite) {
+int Board::minimax(int depth, bool isWhite, int alpha, int beta) {
     //means we looked as far as we wanted to and we evaluate the board.
     if (depth == 0) {
         return evaluate();
@@ -559,7 +558,7 @@ int Board::minimax(int depth, bool isWhite) {
                 BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
                 continue;
             }
-            int score = minimax(depth - 1, false);
+            int score = minimax(depth - 1, false, 9999999, -9999999);
             undoMove(moves[i], capturedPiece, passRow, passCol);
             //restore saved state after undo
             halfMoveCount = savedHalfMove;
@@ -575,6 +574,13 @@ int Board::minimax(int depth, bool isWhite) {
             if (score > bestScore) {
                 bestScore = score;
             }
+            if (bestScore > alpha) {
+                alpha = bestScore;
+            }  
+            if (beta <= alpha) {
+                break; //stop searching
+            }
+
         }
         return bestScore;
     } else {
@@ -613,7 +619,7 @@ int Board::minimax(int depth, bool isWhite) {
                 BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
                 continue;
             }
-            int score = minimax(depth - 1, true);
+            int score = minimax(depth - 1, true, 9999999, -9999999);
             undoMove(moves[i], capturedPiece, passRow, passCol);
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
@@ -628,6 +634,12 @@ int Board::minimax(int depth, bool isWhite) {
             if (score < bestScore) {
                 bestScore = score;
             }
+            if (bestScore < beta) {
+                beta = bestScore;
+            }  
+            if (beta <= alpha) {
+                break;
+            }  
         }
         return bestScore;
     }
@@ -675,7 +687,7 @@ Move Board::getBestMove(int depth, bool isWhite) {
                 BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
                 continue;
             }
-            int score = minimax(depth, false);
+            int score = minimax(depth, false, 9999999, -9999999);
             undoMove(moves[i], capturedPiece, passRow, passCol);
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
@@ -733,7 +745,7 @@ Move Board::getBestMove(int depth, bool isWhite) {
                 BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
                 continue;
             }
-            int score = minimax(depth, true);
+            int score = minimax(depth, true, 9999999, -9999999);
             undoMove(moves[i], capturedPiece, passRow, passCol);
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
@@ -862,9 +874,9 @@ bool Board::isDraw(bool isWhite) {
         if (currentHash == positionHistory[i]) {
             count++;
         }
-        if (count >= 3) {
-            return true;
-        }
+    }
+    if (count >= 3) {
+        return true;
     }
     return halfMoveCount == 100 || (!isInCheck(isWhite) && !hasLegalMoves(isWhite));
 }

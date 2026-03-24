@@ -18,7 +18,7 @@ class Board {
         void makeMove(Move m);
         void undoMove(Move m, int capturedPiece, int enPassantCaptureRow, int enPassantCaptureCol);
         int evaluate();
-        int minimax(int depth, bool isWhite);
+        int minimax(int depth, bool isWhite, int alpha, int beta);
         Move getBestMove(int depth, bool isWhite);
         bool isSquareAttacked(int row, int col, bool isWhite);
         bool isInCheck(bool isWhite);
@@ -55,8 +55,8 @@ class Board {
         bool BlackQueenSideRookMoved = false;
 
         //12 different pieces(6 black and 6 white) and there is 8 row and 8 columns.
-        //we use unsigned(only positive) 64 bit because 32 bit (normal int is too small) and 64 bit makes it less likely to have collision
-        //we want hash to have enough possible value that two different position almost never produce the same hash number.
+        //we use unsigned(only positive) 64 bit because 32 bit (normal int is too small) and 64 bit makes it less likely for random numbers to be same and therefore to have collision
+        //we use unsigned instead of sign to avoid sign complication.
         uint64_t RandomTable[12][8][8];
         uint64_t currentHash = 0;
         std::vector<uint64_t> positionHistory;
