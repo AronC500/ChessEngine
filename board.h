@@ -11,6 +11,13 @@ struct Move {
     int toCol;
 };
 
+//for minimax
+struct MoveScore {
+    int score;
+    Move move;
+};
+
+
 class Board {
     public:
         Board();
@@ -18,14 +25,14 @@ class Board {
         void makeMove(Move m);
         void undoMove(Move m, int capturedPiece, int enPassantCaptureRow, int enPassantCaptureCol);
         int evaluate();
-        int minimax(int depth, bool isWhite, int alpha, int beta);
-        Move getBestMove(int depth, bool isWhite);
+        MoveScore Board::minimax(int depth, bool isWhite, int alpha, int beta);
         bool isSquareAttacked(int row, int col, bool isWhite);
         bool isInCheck(bool isWhite);
         bool isDraw(bool isWhite);
         bool isGameOver(bool isWhite);
         bool hasLegalMoves(bool isWhite);
         int pieceToIndex(int piece);
+        int scoreMovesForOrdering(Move move);
 
         std::vector<Move> getPawnMoves(int row, int col);
         std::vector<Move> getKnightMoves(int row, int col);

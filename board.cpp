@@ -1,7 +1,8 @@
 #include "board.h"
 #include <iostream>
 #include <random>
-
+#include <algorithm>
+ 
 Board::Board() {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -17,12 +18,12 @@ Board::Board() {
     board[7][5] = 3;
     board[7][6] = 2;
     board[7][7] = 4;
-
+ 
     //white pawns
     for (int i = 0; i < 8; i++) {
         board[6][i] = 1;
     }
-
+ 
     //black pieces. negative because it's easier to test if its black or white by seeing if its > or < 0.
     //also easy to get the piece type regardless of color if you use abs.
     board[0][0] = -4;
@@ -33,12 +34,12 @@ Board::Board() {
     board[0][5] = -3;
     board[0][6] = -2;
     board[0][7] = -4;
-
+ 
     //black pawns
     for (int i = 0; i < 8; i++) {
         board[1][i] = -1;
     }
-
+ 
     //69420 is seed and mt19937_64 is a specific algo that generate high quality random 64-bit number.
     std::mt19937_64 rng(69420); 
     for (int i = 0; i < 12; i++) {
@@ -65,36 +66,62 @@ Board::Board() {
         }
     }
     positionHistory.push_back(currentHash);
-
+ 
 }
-
+ 
 void Board::print() {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             switch(board[i][j]) {
-                case 0:  std::cout << ". "; break;
-                case 1:  std::cout << "P "; break;
-                case -1: std::cout << "p "; break;
-                case 2:  std::cout << "N "; break;
-                case -2: std::cout << "n "; break;
-                case 3:  std::cout << "B "; break;
-                case -3: std::cout << "b "; break;
-                case 4:  std::cout << "R "; break;
-                case -4: std::cout << "r "; break;
-                case 5:  std::cout << "Q "; break;
-                case -5: std::cout << "q "; break;
-                case 6:  std::cout << "K "; break;
-                case -6: std::cout << "k "; break;
+                case 0:  
+                    std::cout << ". "; 
+                    break;
+                case 1:  
+                    std::cout << "P "; 
+                    break;
+                case -1: 
+                    std::cout << "p "; 
+                    break;
+                case 2:  
+                    std::cout << "N "; 
+                    break;
+                case -2: 
+                    std::cout << "n "; 
+                    break;
+                case 3:  
+                    std::cout << "B "; 
+                    break;
+                case -3: 
+                    std::cout << "b "; 
+                    break;
+                case 4:  
+                    std::cout << "R "; 
+                    break;
+                case -4: 
+                    std::cout << "r "; 
+                    break;
+                case 5:  
+                    std::cout << "Q "; 
+                    break;
+                case -5: 
+                    std::cout << "q "; 
+                    break;
+                case 6:  
+                    std::cout << "K "; 
+                    break;
+                case -6: 
+                    std::cout << "k "; 
+                    break;
             }
         }
         std::cout << std::endl;
     }
 }
-
+ 
 std::vector<Move> Board::getPawnMoves(int row, int col) {
     std::vector<Move> moves;
     int piece = board[row][col];
-
+ 
     //if is an white pawn.
     if (piece == 1) {
         //bound check so its not above board and make sure square above it is empty.
@@ -117,7 +144,7 @@ std::vector<Move> Board::getPawnMoves(int row, int col) {
             moves.push_back({row, col, EnPassantRow, EnPassantCol});
         }
     }
-
+ 
     //if is an black pawn
     if (piece == -1) {
         //bound check so its not below board and make sure square above it is empty.
@@ -142,7 +169,7 @@ std::vector<Move> Board::getPawnMoves(int row, int col) {
     }
     return moves;
 }
-
+ 
 std::vector<Move> Board::getKnightMoves(int row, int col) {
     std::vector<Move> moves;
     int piece = board[row][col];
@@ -152,7 +179,7 @@ std::vector<Move> Board::getKnightMoves(int row, int col) {
     //all possible 8 knight jumps from left to right and top to bottom.
     int jumpRow[] = {-2, -2, -1, -1, 1, 1, 2, 2};
     int jumpCol[] = {-1, 1, -2, 2, -2, 2, -1, 1};
-
+ 
     for (int i = 0; i < 8; i++) {
         int newRow = row + jumpRow[i];
         int newCol = col + jumpCol[i];
@@ -170,7 +197,7 @@ std::vector<Move> Board::getKnightMoves(int row, int col) {
     }
     return moves;
 }
-
+ 
 std::vector<Move> Board::getRookMoves(int row, int col) {
     std::vector<Move> moves;
     int piece = board[row][col];
@@ -200,7 +227,7 @@ std::vector<Move> Board::getRookMoves(int row, int col) {
     }
     return moves;
 }
-
+ 
 std::vector<Move> Board::getBishopMoves(int row, int col) {
     std::vector<Move> moves;
     int piece = board[row][col];
@@ -231,7 +258,7 @@ std::vector<Move> Board::getBishopMoves(int row, int col) {
     }
     return moves;
 }
-
+ 
 std::vector<Move> Board::getQueenMoves(int row, int col) {
     std::vector<Move> moves;
     int piece = board[row][col];
@@ -261,7 +288,7 @@ std::vector<Move> Board::getQueenMoves(int row, int col) {
     }
     return moves;
 }
-
+ 
 std::vector<Move> Board::getKingMoves(int row, int col) {
     std::vector<Move> moves;
     int piece = board[row][col];
@@ -295,7 +322,7 @@ std::vector<Move> Board::getKingMoves(int row, int col) {
         if (BlackKingMoved == false && BlackQueenSideRookMoved == false && board[0][2] == 0 && board[0][3] == 0 &&  board[0][1] == 0 && !isInCheck(false) && !isSquareAttacked(0, 3, true) && !isSquareAttacked(0, 2, true)) {
             moves.push_back({0, 4, 0, 2});
         }
-
+ 
     }
     //white
     if (piece == 6) {
@@ -307,14 +334,14 @@ std::vector<Move> Board::getKingMoves(int row, int col) {
         if (WhiteKingMoved == false && WhiteQueenSideRookMoved == false && board[7][2] == 0 && board[7][3] == 0 &&  board[7][1] == 0 &&  !isInCheck(true) && !isSquareAttacked(7, 3, false) && !isSquareAttacked(7, 2, false)) {
             moves.push_back({7, 4, 7, 2});
         }
-
+ 
     }
-
+ 
     return moves;
 }
-
-
-
+ 
+ 
+ 
 std::vector<Move> Board::GenerateAllMoves(int color) {
     std::vector<Move> moves;
     for (int i = 0; i < 8; i++) {
@@ -332,12 +359,24 @@ std::vector<Move> Board::GenerateAllMoves(int color) {
             }
             std::vector<Move> temporaryMove;
             switch(abs(piece)) {
-                case 1: temporaryMove = getPawnMoves(i,j);   break;
-                case 2: temporaryMove = getKnightMoves(i,j); break;
-                case 3: temporaryMove = getBishopMoves(i,j); break;
-                case 4: temporaryMove = getRookMoves(i,j);   break;
-                case 5: temporaryMove = getQueenMoves(i,j);  break;
-                case 6: temporaryMove = getKingMoves(i,j);   break;
+                case 1: 
+                    temporaryMove = getPawnMoves(i,j);   
+                    break;
+                case 2: 
+                    temporaryMove = getKnightMoves(i,j); 
+                    break;
+                case 3: 
+                    temporaryMove = getBishopMoves(i,j); 
+                    break;
+                case 4: 
+                    temporaryMove = getRookMoves(i,j);   
+                    break;
+                case 5: 
+                    temporaryMove = getQueenMoves(i,j);  
+                    break;
+                case 6: 
+                    temporaryMove = getKingMoves(i,j);   
+                    break;
             }
             for (int k = 0; k < temporaryMove.size(); k++) {
                 moves.push_back(temporaryMove[k]);
@@ -346,7 +385,7 @@ std::vector<Move> Board::GenerateAllMoves(int color) {
     }
     return moves;
 }
-
+ 
 //make move to the board. move piece from the from square to the to square and set the from square to 0.
 void Board::makeMove(Move m) {
     int piece = board[m.fromRow][m.fromCol];
@@ -377,7 +416,7 @@ void Board::makeMove(Move m) {
             EnPassantCol = m.fromCol;
         }
     }
-
+ 
     if (board[m.toRow][m.toCol] != 0) {
         currentHash ^= RandomTable[pieceToIndex(board[m.toRow][m.toCol])][m.toRow][m.toCol];
     }
@@ -394,7 +433,7 @@ void Board::makeMove(Move m) {
             currentHash ^= RandomTable[pieceToIndex(4)][7][3]; 
             board[7][3] = 4;
             WhiteQueenSideRookMoved = true; 
-
+ 
         }
         if (m.fromCol == 4 && m.fromRow == 7 && m.toCol == 6 && m.toRow == 7) {
             currentHash ^= RandomTable[pieceToIndex(4)][7][7]; 
@@ -440,7 +479,7 @@ void Board::makeMove(Move m) {
     if (piece == -4 && m.fromRow == 0 && m.fromCol == 7) {
         BlackKingSideRookMoved = true;
     }
-    //pawn promotion for white
+    //pawn promotion for white. always promote to queen (engine choice). hash update needed since piece on square changes.
     if (piece == 1 && m.toRow == 0) {
         currentHash ^= RandomTable[pieceToIndex(piece)][m.toRow][m.toCol];
         board[m.toRow][m.toCol] = 5;
@@ -454,13 +493,23 @@ void Board::makeMove(Move m) {
     }
     positionHistory.push_back(currentHash);
 }
-
+ 
 //reverse a move. puts the piece back on the from square and restore captured piece on the to square.
 void Board::undoMove(Move m, int capturedPiece, int enPassantCaptureRow, int enPassantCaptureCol) {
     int piece = board[m.toRow][m.toCol];
+ 
+    //restore original pawn from their king/queen
+    if (piece == 5 && m.fromRow == 1 && m.toRow == 0) {
+        piece = 1;
+    }
+    if (piece == -5 && m.fromRow == 6 && m.toRow == 7) {
+        piece = -1;
+    }
+ 
     board[m.fromRow][m.fromCol] = piece;
     if (enPassantCaptureCol != -1 && enPassantCaptureRow != -1 && abs(piece) == 1) {
         board[enPassantCaptureRow][enPassantCaptureCol] = capturedPiece;
+        board[m.toRow][m.toCol] = 0;
     } else {
         board[m.toRow][m.toCol] = capturedPiece;
     }
@@ -486,7 +535,7 @@ void Board::undoMove(Move m, int capturedPiece, int enPassantCaptureRow, int enP
     positionHistory.pop_back();
     currentHash = positionHistory[positionHistory.size()-1];
 }
-
+ 
 //return a score base on board. positive mean white is winning and negative mean black is winning.
 int Board::evaluate() {
     int count = 0;
@@ -511,18 +560,32 @@ int Board::evaluate() {
     }
     return count;
 }
-
+ 
 //find best possible score of whole board after looking ahead certain number of moves. when it is white's turn,
 //it tries to make the highest score and when it's black turn, it tries every possible black move to find the lowest score.
 //depth param is how many moves ahead the engine looks.
-int Board::minimax(int depth, bool isWhite, int alpha, int beta) {
+MoveScore Board::minimax(int depth, bool isWhite, int alpha, int beta) {
     //means we looked as far as we wanted to and we evaluate the board.
     if (depth == 0) {
-        return evaluate();
+        return {evaluate(), {-1,-1,-1,-1}};
     }
     if (isWhite) {
         int bestScore = -9999999;
+        //bestMove starts as invalid sentinel. stays that way if no legal moves found (checkmate/stalemate).
+        Move bestMove = {-1,-1,-1,-1};
         std::vector<Move> moves = GenerateAllMoves(1);
+
+        //sort from beginning to end with first param being where to start and second param where to end.
+        //third param is a comparator that tells sort how to compare two elements. without it, sort uses < by default which sort smallest to largest. this would result in ascending order but we have descending order with >.
+        //we use [&] to basically say capture the current board object because it need access to the function scoreMovesForOrdering but its also used to access for all member variables too.
+        std::sort(moves.begin(), moves.end(), [&](Move a, Move b) {
+            return scoreMovesForOrdering(a) > scoreMovesForOrdering(b);
+        });
+ 
+
+        // track whether any legal move was found so we can detect checkmate/stalemate at leaf.
+        bool anyLegal = false;
+ 
         for (int i = 0; i < moves.size(); i++) {
             passRow = -1;
             passCol = -1;
@@ -541,7 +604,7 @@ int Board::minimax(int depth, bool isWhite, int alpha, int beta) {
             bool savedBlackKingMoved = BlackKingMoved;
             bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
             bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
-
+ 
             int capturedPiece = board[moves[i].toRow][moves[i].toCol];
             makeMove(moves[i]);
             //filter move that make king in check.
@@ -558,7 +621,9 @@ int Board::minimax(int depth, bool isWhite, int alpha, int beta) {
                 BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
                 continue;
             }
-            int score = minimax(depth - 1, false, 9999999, -9999999);
+            anyLegal = true;
+            //only need the score from the recursive call, not the move it picked deeper down.
+            int score = minimax(depth - 1, false, alpha, beta).score;
             undoMove(moves[i], capturedPiece, passRow, passCol);
             //restore saved state after undo
             halfMoveCount = savedHalfMove;
@@ -570,9 +635,10 @@ int Board::minimax(int depth, bool isWhite, int alpha, int beta) {
             BlackKingMoved = savedBlackKingMoved;
             BlackKingSideRookMoved = savedBlackKingSideRookMoved;
             BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
-
-            if (score > bestScore) {
+ 
+            if (score > bestScore || bestMove.fromRow == -1) {
                 bestScore = score;
+                bestMove = moves[i]; //track which move produced the best score.
             }
             if (bestScore > alpha) {
                 alpha = bestScore;
@@ -580,12 +646,29 @@ int Board::minimax(int depth, bool isWhite, int alpha, int beta) {
             if (beta <= alpha) {
                 break; //stop searching
             }
-
         }
-        return bestScore;
+        //if no legal moves, return checkmate or stalemate score instead of garbage -9999999.
+        if (!anyLegal) {
+            if (isInCheck(true)) {
+                return {-9999999, {-1,-1,-1,-1}}; //checkmate, white loses.
+            } else {
+                return {0, {-1,-1,-1,-1}}; //stalemate, it's a draw. where king current position is not being attacked but all possible moves will leave it to be attacked.
+            }
+        }
+        return {bestScore, bestMove};
     } else {
         int bestScore = 9999999;
+        //bestMove starts as invalid sentinel. stays that way if no legal moves found (checkmate/stalemate).
+        Move bestMove = {-1,-1,-1,-1};
         std::vector<Move> moves = GenerateAllMoves(-1);
+        std::sort(moves.begin(), moves.end(), [&](Move a, Move b) {
+            return scoreMovesForOrdering(a) > scoreMovesForOrdering(b);
+        });
+ 
+ 
+        // track whether any legal move was found so we can detect checkmate/stalemate at leaf.
+        bool anyLegal = false;
+ 
         for (int i = 0; i < moves.size(); i++) {
             passRow = -1;
             passCol = -1;
@@ -603,7 +686,7 @@ int Board::minimax(int depth, bool isWhite, int alpha, int beta) {
             bool savedBlackKingMoved = BlackKingMoved;
             bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
             bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
-
+ 
             int capturedPiece = board[moves[i].toRow][moves[i].toCol];
             makeMove(moves[i]);
             if (isInCheck(false)) {
@@ -619,7 +702,9 @@ int Board::minimax(int depth, bool isWhite, int alpha, int beta) {
                 BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
                 continue;
             }
-            int score = minimax(depth - 1, true, 9999999, -9999999);
+            anyLegal = true;
+            //only need the score from the recursive call, not the move it picked deeper down.
+            int score = minimax(depth - 1, true, alpha, beta).score;
             undoMove(moves[i], capturedPiece, passRow, passCol);
             halfMoveCount = savedHalfMove;
             EnPassantRow = savedEPRow;
@@ -630,9 +715,10 @@ int Board::minimax(int depth, bool isWhite, int alpha, int beta) {
             BlackKingMoved = savedBlackKingMoved;
             BlackKingSideRookMoved = savedBlackKingSideRookMoved;
             BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
-
-            if (score < bestScore) {
+ 
+            if (score < bestScore || bestMove.fromRow == -1) {
                 bestScore = score;
+                bestMove = moves[i]; //track which move produced the best score.
             }
             if (bestScore < beta) {
                 beta = bestScore;
@@ -641,131 +727,18 @@ int Board::minimax(int depth, bool isWhite, int alpha, int beta) {
                 break;
             }  
         }
-        return bestScore;
-    }
-}
-
-//similar to minimax but instead of returning a score it returns the actual best move to play.
-Move Board::getBestMove(int depth, bool isWhite) {
-    if (isWhite) {
-        std::vector<Move> moves = GenerateAllMoves(1);
-        if (isGameOver(isWhite) || isDraw(isWhite) || moves.size() == 0) {
-            return {-1,-1,-1,-1};
-        }
-        int bestScore = -9999999;
-        Move bestMove = moves[0];
-        for (int i = 0; i < moves.size(); i++) {
-            passRow = -1;
-            passCol = -1;
-            //we have to check whether enpass or not before makemove so we can pass to undo move to check because in make move we change it to -1 after so it would be too late for undomove function
-            if (EnPassantRow != -1 && EnPassantCol != -1 && abs(board[moves[i].fromRow][moves[i].fromCol]) == 1 && (moves[i].toRow == EnPassantRow && moves[i].toCol == EnPassantCol)) {
-                passRow = moves[i].fromRow;
-                passCol = EnPassantCol;
-            }
-            int savedHalfMove = halfMoveCount;
-            int savedEPRow = EnPassantRow;
-            int savedEPCol = EnPassantCol;
-            bool savedWhiteKingMoved = WhiteKingMoved;
-            bool savedWhiteKingSideRookMoved = WhiteKingSideRookMoved;
-            bool savedWhiteQueenSideRookMoved = WhiteQueenSideRookMoved;
-            bool savedBlackKingMoved = BlackKingMoved;
-            bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
-            bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
-
-            int capturedPiece = board[moves[i].toRow][moves[i].toCol];
-            makeMove(moves[i]);
-            if (isInCheck(true)) {
-                undoMove(moves[i], capturedPiece, passRow, passCol);
-                halfMoveCount = savedHalfMove;
-                EnPassantRow = savedEPRow;
-                EnPassantCol = savedEPCol;
-                WhiteKingMoved = savedWhiteKingMoved;
-                WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
-                WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
-                BlackKingMoved = savedBlackKingMoved;
-                BlackKingSideRookMoved = savedBlackKingSideRookMoved;
-                BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
-                continue;
-            }
-            int score = minimax(depth, false, 9999999, -9999999);
-            undoMove(moves[i], capturedPiece, passRow, passCol);
-            halfMoveCount = savedHalfMove;
-            EnPassantRow = savedEPRow;
-            EnPassantCol = savedEPCol;
-            WhiteKingMoved = savedWhiteKingMoved;
-            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
-            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
-            BlackKingMoved = savedBlackKingMoved;
-            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
-            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
-
-            if (score > bestScore) {
-                bestScore = score;
-                bestMove = moves[i];
-            }
-        }
-        return bestMove;
-    } else {
-        std::vector<Move> moves = GenerateAllMoves(-1);
-        if (isGameOver(isWhite) || isDraw(isWhite) || moves.size() == 0) {
-            return {-1,-1,-1,-1};
-        }
-        int bestScore = 9999999;
-        Move bestMove = moves[0];
-        for (int i = 0; i < moves.size(); i++) {
-            passRow = -1;
-            passCol = -1;
-            //we have to check whether enpass or not before makemove so we can pass to undo move to check because in make move we change it to -1 after so it would be too late for undomove function
-            if (EnPassantRow != -1 && EnPassantCol != -1 && abs(board[moves[i].fromRow][moves[i].fromCol]) == 1 && (moves[i].toRow == EnPassantRow && moves[i].toCol == EnPassantCol)) {
-                passRow = moves[i].fromRow;
-                passCol = EnPassantCol;
-            }
-            int savedHalfMove = halfMoveCount;
-            int savedEPRow = EnPassantRow;
-            int savedEPCol = EnPassantCol;
-            bool savedWhiteKingMoved = WhiteKingMoved;
-            bool savedWhiteKingSideRookMoved = WhiteKingSideRookMoved;
-            bool savedWhiteQueenSideRookMoved = WhiteQueenSideRookMoved;
-            bool savedBlackKingMoved = BlackKingMoved;
-            bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
-            bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
-
-            int capturedPiece = board[moves[i].toRow][moves[i].toCol];
-            makeMove(moves[i]);
+        //if no legal moves, return checkmate or stalemate score instead of garbage 9999999.
+        if (!anyLegal) {
             if (isInCheck(false)) {
-                undoMove(moves[i], capturedPiece, passRow, passCol);
-                halfMoveCount = savedHalfMove;
-                EnPassantRow = savedEPRow;
-                EnPassantCol = savedEPCol;
-                WhiteKingMoved = savedWhiteKingMoved;
-                WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
-                WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
-                BlackKingMoved = savedBlackKingMoved;
-                BlackKingSideRookMoved = savedBlackKingSideRookMoved;
-                BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
-                continue;
-            }
-            int score = minimax(depth, true, 9999999, -9999999);
-            undoMove(moves[i], capturedPiece, passRow, passCol);
-            halfMoveCount = savedHalfMove;
-            EnPassantRow = savedEPRow;
-            EnPassantCol = savedEPCol;
-            WhiteKingMoved = savedWhiteKingMoved;
-            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
-            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
-            BlackKingMoved = savedBlackKingMoved;
-            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
-            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
-
-            if (score < bestScore) {
-                bestScore = score;
-                bestMove = moves[i];
+                return {9999999, {-1,-1,-1,-1}}; //checkmate, black loses.
+            } else {
+                return {0, {-1,-1,-1,-1}}; //stalemate, it's a draw.
             }
         }
-        return bestMove;
+        return {bestScore, bestMove};
     }
 }
-
+ 
 //check if square is being attacked by color.
 bool Board::isSquareAttacked(int row, int col, bool isWhite) {
     int color;
@@ -778,7 +751,7 @@ bool Board::isSquareAttacked(int row, int col, bool isWhite) {
     int diagonal[4][2] = {{-1,-1},{1,1},{1,-1},{-1,1}};
     int knightMoves[8][2] = {{-2,-1},{-2,1},{-1,-2},{-1,2},{1,-2},{1,2},{2,-1},{2,1}};
     int kingMoves[8][2] = {{0,-1},{0,1},{1,0},{-1,0},{-1,-1},{1,1},{1,-1},{-1,1}};
-
+ 
     //For checking if current position is in danger of an rook/queen (straight)
     for (int i = 0; i < 4; i++) {
         int r = row + straight[i][0];
@@ -845,7 +818,7 @@ bool Board::isSquareAttacked(int row, int col, bool isWhite) {
     }
     return false;
 }
-
+ 
 //check if king is in check.
 bool Board::isInCheck(bool isWhite) {
     int kingPiece;
@@ -864,7 +837,7 @@ bool Board::isInCheck(bool isWhite) {
     }
     return false;
 }
-
+ 
 //Stalemate = not in check + no legal moves
 //Fifty move rule = 100 half moves with no pawn move or capture
 bool Board::isDraw(bool isWhite) {
@@ -880,12 +853,12 @@ bool Board::isDraw(bool isWhite) {
     }
     return halfMoveCount == 100 || (!isInCheck(isWhite) && !hasLegalMoves(isWhite));
 }
-
+ 
 //Checkmate = in check + no legal moves.
 bool Board::isGameOver(bool isWhite) {
     return isInCheck(isWhite) && !hasLegalMoves(isWhite);
 }
-
+ 
 //check if have legal move by going through all possible moves and seeing if one move can make it so you are not in check.
 bool Board::hasLegalMoves(bool isWhite) {
     int color;
@@ -912,7 +885,7 @@ bool Board::hasLegalMoves(bool isWhite) {
         bool savedBlackKingMoved = BlackKingMoved;
         bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
         bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
-
+ 
         int capturedPiece = board[AllMoves[i].toRow][AllMoves[i].toCol];
         makeMove(AllMoves[i]);
         if (!isInCheck(isWhite)) {
@@ -941,7 +914,7 @@ bool Board::hasLegalMoves(bool isWhite) {
     }
     return false;
 }
-
+ 
 //for when you get board square current piece and can use that as index in randomTable to get that piece's random number
 int pieceToIndex(int piece) {
     switch(piece) {
@@ -972,4 +945,17 @@ int pieceToIndex(int piece) {
         default: 
             return -1; //empty square
     }
+}
+ 
+
+int Board::scoreMovesForOrdering(Move move) {
+    int score = 0;
+    int capturedPiece = board[move.toRow][move.toCol];
+    //we return score = 0 for empty square since for alpha beta pruning, it's going to probably be skipped anyway when it goes through captured pieces first and we are going to change it later when we figure out which square that is empty is better than another square that is better.
+    if (capturedPiece != 0) {
+        //we do abs regardless of color for highest capture but we also subtract from our current piece value since we want
+        //the cheapest piece value to take their highest piece value so pawn taking queen is more valuable than queen taking queen.
+        score += 10 * abs(capturedPiece) - abs(board[move.fromRow][move.fromCol]);
+    }
+    return score;
 }
