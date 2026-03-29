@@ -542,19 +542,56 @@ int Board::evaluate() {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             switch(board[i][j]) {
-                case 0:   break;
-                case 1:   count += 100;     break;
-                case -1:  count -= 100;     break;
-                case 2:   count += 300;     break;
-                case -2:  count -= 300;     break;
-                case 3:   count += 300;     break;
-                case -3:  count -= 300;     break;
-                case 4:   count += 500;     break;
-                case -4:  count -= 500;     break;
-                case 5:   count += 900;     break;
-                case -5:  count -= 900;     break;
-                case 6:   count += 1000000; break;
-                case -6:  count -= 1000000; break;
+                case 0:   
+                    break;
+                case 1:   
+                    count += 100;    
+                    count += pawnTable[i][j]; 
+                    break;
+                case -1:  
+                    count -= 100;     
+                    count -= pawnTable[7-i][j]; 
+                    break;
+                case 2:   
+                    count += 300;  
+                    count += knightTable[i][j];    
+                    break;
+                case -2:  
+                    count -= 300;  
+                    count -= knightTable[7-i][j];    
+                    break;
+                case 3:   
+                    count += 300; 
+                    count += bishopTable[i][j];     
+                    break;
+                case -3:  
+                    count -= 300;     
+                    count -= bishopTable[7-i][j];    
+                    break;
+                case 4:   
+                    count += 500;     
+                    count += rookTable[i][j]; 
+                    break;
+                case -4:  
+                    count -= 500;     
+                    count -= rookTable[7-i][j];    
+                    break;
+                case 5:   
+                    count += 900;  
+                    count += queenTable[i][j];    
+                    break;
+                case -5:  
+                    count -= 900;    
+                    count -= queenTable[7-i][j];     
+                    break;
+                case 6:   
+                    count += 1000000; 
+                    count += kingTable[i][j]; 
+                    break;
+                case -6:  
+                    count -= 1000000; 
+                    count -= kingTable[7-i][j];    
+                    break;
             }
         }
     }
