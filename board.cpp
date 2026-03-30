@@ -676,10 +676,53 @@ int Board::evaluate() {
                         }      
                         if (board[i-1][j] != 1) {
                             count -= 20;
-                        }
-                        //for open file if no pawn of either side is in that column in front of king or left or right, its not safe.
-
+                        }                        
                     }  
+                    //for open file if no pawn of either side is in that column in front of king or left or right, its not safe.
+                    if (j > 0 && j < 7) {
+                        for (int k = 0; k < 8; k++) {
+                            bool openFile = true;
+                            for (int l = j-1; l < j+1; l++) {
+                                if (abs(board[k][l]) == 1) {
+                                    openFile = false;
+                                    break;
+                                }
+                            }
+                            if (!openFile) {
+                                count -= 30;
+                            }
+                        }
+                    }
+                    if (j == 0) {
+                        for (int k = 0; k < 8; k++) {
+                            bool openFile = true;
+                            for (int l = j; l < j+2; l++) {
+                                if (abs(board[k][l]) == 1) {
+                                    openFile = false;
+                                    break;
+                                }
+                            }
+                            if (!openFile) {
+                                count -= 30;
+                            }
+                    
+                        }
+                    }
+                    if (j == 7) {
+                        for (int k = 0; k < 8; k++) {
+                            bool openFile = true;
+                            for (int l = j; l > j-2; l--) {
+                                if (abs(board[k][l]) == 1) {
+                                    openFile = false;
+                                    break;
+                                }
+                            }
+                            if (!openFile) {
+                                count -= 30;
+                            }
+                        }
+
+                    }
                     break;
                 case -6:  
                     count -= 1000000; 
