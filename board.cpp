@@ -542,9 +542,9 @@ int Board::evaluate() {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             switch(board[i][j]) {
-                case 0:   
+                case 0: 
                     break;
-                case 1:   
+                case 1: 
                     count += 100;    
                     count += pawnTable[i][j]; 
                     break;
@@ -552,38 +552,72 @@ int Board::evaluate() {
                     count -= 100;     
                     count -= pawnTable[7-i][j]; 
                     break;
-                case 2:   
+                    //if declare variable inside switch, we need to add {} because otherwise compiler see all cases as the same scope and get confused.
+                case 2:  {
                     count += 300;  
-                    count += knightTable[i][j];    
+                    count += knightTable[i][j];  
+                    std::vector<Move> KnightMoves = getKnightMoves(i,j);  
+                    count += KnightMoves.size() * 4;
                     break;
-                case -2:  
+                }  
+                case -2:   {
                     count -= 300;  
-                    count -= knightTable[7-i][j];    
+                    count -= knightTable[7-i][j];  
+                    std::vector<Move> KnightMoves = getKnightMoves(i,j);  
+                    count -= KnightMoves.size() * 4;  
                     break;
-                case 3:   
+
+                }
+                case 3:    {
                     count += 300; 
                     count += bishopTable[i][j];     
+                    std::vector<Move> BishopMoves = getBishopMoves(i,j);  
+                    count += BishopMoves.size() * 3;  
                     break;
-                case -3:  
+
+                }
+
+                case -3:  {
                     count -= 300;     
-                    count -= bishopTable[7-i][j];    
+                    count -= bishopTable[7-i][j]; 
+                    std::vector<Move> BishopMoves = getBishopMoves(i,j);  
+                    count -= BishopMoves.size() * 3;     
                     break;
-                case 4:   
+
+                } 
+                case 4:    {
                     count += 500;     
                     count += rookTable[i][j]; 
+                    std::vector<Move> rookMoves = getRookMoves(i,j);  
+                    count += rookMoves.size() * 2;    
                     break;
-                case -4:  
+
+                }
+
+                case -4:   {
                     count -= 500;     
-                    count -= rookTable[7-i][j];    
-                    break;
-                case 5:   
+                    count -= rookTable[7-i][j];  
+                    std::vector<Move> rookMoves = getRookMoves(i,j);  
+                    count -= rookMoves.size() * 2;  
+                    break;   
+
+                } 
+                case 5:    {
                     count += 900;  
                     count += queenTable[i][j];    
+                    std::vector<Move> queenMoves = getQueenMoves(i,j);  
+                    count += queenMoves.size() * 2;  
                     break;
-                case -5:  
+
+                }
+                case -5:   {
                     count -= 900;    
-                    count -= queenTable[7-i][j];     
+                    count -= queenTable[7-i][j];    
+                    std::vector<Move> queenMoves = getQueenMoves(i,j);  
+                    count = queenMoves.size() * 2;   
                     break;
+                    
+                }
                 case 6:   
                     count += 1000000; 
                     count += kingTable[i][j]; 
