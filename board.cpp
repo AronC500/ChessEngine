@@ -665,7 +665,21 @@ int Board::evaluate() {
                     }
                     else {
                         count += kingTable[i][j]; 
-                    }                        
+                    }       
+                    if (i > 0) {
+                        //for pawn shield 
+                        if (j < 7 && board[i-1][j+1] != 1) {
+                            count -= 20;
+                        }   
+                        if (j > 0 && board[i-1][j-1] != 1) {
+                            count -= 20;
+                        }      
+                        if (board[i-1][j] != 1) {
+                            count -= 20;
+                        }
+                        //for open file if no pawn of either side is in that column in front of king or left or right, its not safe.
+
+                    }  
                     break;
                 case -6:  
                     count -= 1000000; 
@@ -674,7 +688,18 @@ int Board::evaluate() {
                     }
                     else {
                         count -= kingTable[7-i][j]; 
-                    }                        
+                    }    
+                    if (i < 7) {
+                        if (j < 7 && board[i+1][j+1] != -1) {
+                            count += 20;
+                        }   
+                        if (j > 0 && board[i+1][j-1] != -1) {
+                            count += 20;
+                        }      
+                        if (board[i+1][j] != -1) {
+                            count += 20;
+                        }
+                    }                      
                     break;
             }
         }
