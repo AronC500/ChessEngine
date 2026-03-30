@@ -538,6 +538,27 @@ void Board::undoMove(Move m, int capturedPiece, int enPassantCaptureRow, int enP
  
 //return a score base on board. positive mean white is winning and negative mean black is winning.
 int Board::evaluate() {
+    int material = 0;
+    //check if its endgame or not.
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            switch(abs(board[i][j])) {
+                case 2: 
+                    material += 300; //knight
+                    break;
+                case 3: 
+                    material += 300; //bishop
+                    break; 
+                case 4: 
+                    material += 500;  //rook
+                    break; 
+                case 5: 
+                    material += 900;  //queen
+                    break; 
+            }
+        }
+    }
+    bool isEndGame = material < 4000;
     int count = 0;
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -546,11 +567,21 @@ int Board::evaluate() {
                     break;
                 case 1: 
                     count += 100;    
-                    count += pawnTable[i][j]; 
+                    if (isEndGame) {
+                        count += pawnEndgameTable[i][j];
+                    }
+                    else {
+                        count += pawnTable[i][j]; 
+                    }
                     break;
                 case -1:  
                     count -= 100;     
-                    count -= pawnTable[7-i][j]; 
+                    if (isEndGame) {
+                        count -= pawnEndgameTable[7-i][j];
+                    }
+                    else {
+                        count -= pawnTable[7-i][j]; 
+                    }                    
                     break;
                     //if declare variable inside switch, we need to add {} because otherwise compiler see all cases as the same scope and get confused.
                 case 2:  {
@@ -587,7 +618,12 @@ int Board::evaluate() {
                 } 
                 case 4:    {
                     count += 500;     
-                    count += rookTable[i][j]; 
+                    if (isEndGame) {
+                        count += rookEndgameTable[i][j];
+                    }
+                    else {
+                        count += rookTable[i][j]; 
+                    }                        
                     std::vector<Move> rookMoves = getRookMoves(i,j);  
                     count += rookMoves.size() * 2;    
                     break;
@@ -596,7 +632,12 @@ int Board::evaluate() {
 
                 case -4:   {
                     count -= 500;     
-                    count -= rookTable[7-i][j];  
+                    if (isEndGame) {
+                        count -= rookEndgameTable[7-i][j];
+                    }
+                    else {
+                        count -= rookTable[7-i][j]; 
+                    }                        
                     std::vector<Move> rookMoves = getRookMoves(i,j);  
                     count -= rookMoves.size() * 2;  
                     break;   
@@ -614,17 +655,26 @@ int Board::evaluate() {
                     count -= 900;    
                     count -= queenTable[7-i][j];    
                     std::vector<Move> queenMoves = getQueenMoves(i,j);  
-                    count = queenMoves.size() * 2;   
+                    count -= queenMoves.size() * 2;                    
                     break;
-                    
                 }
                 case 6:   
                     count += 1000000; 
-                    count += kingTable[i][j]; 
+                    if (isEndGame) {
+                        count += kingEndgameTable[i][j];
+                    }
+                    else {
+                        count += kingTable[i][j]; 
+                    }                        
                     break;
                 case -6:  
                     count -= 1000000; 
-                    count -= kingTable[7-i][j];    
+                    if (isEndGame) {
+                        count -= kingEndgameTable[7-i][j];
+                    }
+                    else {
+                        count -= kingTable[7-i][j]; 
+                    }                        
                     break;
             }
         }
