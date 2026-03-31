@@ -580,13 +580,18 @@ int Board::evaluate() {
                             break;
                         }
                     }
+                    //check for isolated pawn and passed pawn
+                    bool passedPawn = true;   
                     if (j > 0 && j < 7) {
                          for (int l = j-1; l <= j+1; l++) {
                             bool isolatedPawn = true;
-                            for (int k = 0; k < 8; k++) {
+                            for (int k = 0; k < i; k++) {
                                 if (board[k][l] == 1) {
                                     isolatedPawn = false;                                    
-                                    break;
+                                }
+                                if (board[k][l] == -1) {
+                                    passedPawn = false;                                    
+                                    
                                 }
                             }
                             if (isolatedPawn) {
@@ -597,10 +602,13 @@ int Board::evaluate() {
                     if (j == 0) {
                         for (int l = j; l <= j+1; l++) {
                             bool isolatedPawn = true;
-                            for (int k = 0; k < 8; k++) {   
+                            for (int k = 0; k < i; k++) {   
                                 if (board[k][l] == 1) {
                                     isolatedPawn = false;                                    
-                                    break;
+                                }
+                                if (board[k][l] == -1) {
+                                    passedPawn = false;                                    
+                                    
                                 }
                             }
                             if (isolatedPawn) {
@@ -612,10 +620,13 @@ int Board::evaluate() {
                     if (j == 7) {
                         for (int l = j-1; l <= j; l++) {
                             bool isolatedPawn = true;
-                            for (int k = 0; k < 8; k++) {
+                            for (int k = 0; k < i; k++) {
                                 if (board[k][l] == 1) {
                                     isolatedPawn = false;
-                                    break;
+                                }
+                                if (board[k][l] == -1) {
+                                    passedPawn = false;                                    
+                                    
                                 }
                             }
                             if (isolatedPawn) {
@@ -624,6 +635,9 @@ int Board::evaluate() {
                         }
 
                     }
+                    if (passedPawn) {
+                        count += 50;
+                    }           
                     break;
                 case -1:  
                     count -= 100;     
@@ -639,13 +653,17 @@ int Board::evaluate() {
                             break;
                         }
                     }       
+                    bool passedPawn = true;   
                     if (j > 0 && j < 7) {
                          for (int l = j-1; l <= j+1; l++) {
                             bool isolatedPawn = true;
-                            for (int k = 0; k < 8; k++) {
-                                if (board[k][l] == -1) {
+                            for (int k = 0; k < i; k++) {
+                                if (board[k][l] == 1) {
                                     isolatedPawn = false;                                    
-                                    break;
+                                }
+                                if (board[k][l] == 1) {
+                                    passedPawn = false;                                    
+                                    
                                 }
                             }
                             if (isolatedPawn) {
@@ -656,10 +674,13 @@ int Board::evaluate() {
                     if (j == 0) {
                         for (int l = j; l <= j+1; l++) {
                             bool isolatedPawn = true;
-                            for (int k = 0; k < 8; k++) {   
-                                if (board[k][l] == -1) {
+                            for (int k = 0; k < i; k++) {   
+                                if (board[k][l] == 1) {
                                     isolatedPawn = false;                                    
-                                    break;
+                                }
+                                if (board[k][l] == 1) {
+                                    passedPawn = false;                                    
+                                    
                                 }
                             }
                             if (isolatedPawn) {
@@ -671,10 +692,13 @@ int Board::evaluate() {
                     if (j == 7) {
                         for (int l = j-1; l <= j; l++) {
                             bool isolatedPawn = true;
-                            for (int k = 0; k < 8; k++) {
-                                if (board[k][l] == -1) {
+                            for (int k = 0; k < i; k++) {
+                                if (board[k][l] == 1) {
                                     isolatedPawn = false;
-                                    break;
+                                }
+                                if (board[k][l] == 1) {
+                                    passedPawn = false;                                    
+                                    
                                 }
                             }
                             if (isolatedPawn) {
@@ -683,6 +707,9 @@ int Board::evaluate() {
                         }
 
                     }
+                    if (passedPawn) {
+                        count -= 50;
+                    }           
                     break;
                     //if declare variable inside switch, we need to add {} because otherwise compiler see all cases as the same scope and get confused.
                 case 2:  {
