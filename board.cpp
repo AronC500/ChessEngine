@@ -586,7 +586,7 @@ int Board::evaluate() {
                          for (int l = j-1; l <= j+1; l++) {
                             bool isolatedPawn = true;
                             for (int k = 0; k < i; k++) {
-                                if (board[k][l] == 1) {
+                                if (board[k][l] == 1 && k != j) {
                                     isolatedPawn = false;                                    
                                 }
                                 if (board[k][l] == -1) {
@@ -603,7 +603,7 @@ int Board::evaluate() {
                         for (int l = j; l <= j+1; l++) {
                             bool isolatedPawn = true;
                             for (int k = 0; k < i; k++) {   
-                                if (board[k][l] == 1) {
+                                if (board[k][l] == 1 && k != j) {
                                     isolatedPawn = false;                                    
                                 }
                                 if (board[k][l] == -1) {
@@ -621,7 +621,7 @@ int Board::evaluate() {
                         for (int l = j-1; l <= j; l++) {
                             bool isolatedPawn = true;
                             for (int k = 0; k < i; k++) {
-                                if (board[k][l] == 1) {
+                                if (board[k][l] == 1 && k != j) {
                                     isolatedPawn = false;
                                 }
                                 if (board[k][l] == -1) {
@@ -658,7 +658,7 @@ int Board::evaluate() {
                          for (int l = j-1; l <= j+1; l++) {
                             bool isolatedPawn = true;
                             for (int k = 0; k < i; k++) {
-                                if (board[k][l] == 1) {
+                                if (board[k][l] == -1 && k != j) {
                                     isolatedPawn = false;                                    
                                 }
                                 if (board[k][l] == 1) {
@@ -675,7 +675,7 @@ int Board::evaluate() {
                         for (int l = j; l <= j+1; l++) {
                             bool isolatedPawn = true;
                             for (int k = 0; k < i; k++) {   
-                                if (board[k][l] == 1) {
+                                if (board[k][l] == -1 && k != j) {
                                     isolatedPawn = false;                                    
                                 }
                                 if (board[k][l] == 1) {
@@ -693,7 +693,7 @@ int Board::evaluate() {
                         for (int l = j-1; l <= j; l++) {
                             bool isolatedPawn = true;
                             for (int k = 0; k < i; k++) {
-                                if (board[k][l] == 1) {
+                                if (board[k][l] == -1 && k != j) {
                                     isolatedPawn = false;
                                 }
                                 if (board[k][l] == 1) {
