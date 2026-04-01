@@ -565,7 +565,7 @@ int Board::evaluate() {
             switch(board[i][j]) {
                 case 0: 
                     break;
-                case 1: 
+                case 1: {
                     count += 100;    
                     if (isEndGame) {
                         count += pawnEndgameTable[i][j];
@@ -581,136 +581,127 @@ int Board::evaluate() {
                         }
                     }
                     //check for isolated pawn and passed pawn
+                    bool isolatedPawn = true;
+                    if (j > 0) {
+                        for (int k = 0; k < 8; k++) {
+                            if (board[k][j-1] == 1) {
+                                isolatedPawn = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (j < 7) {
+                        for (int k = 0; k < 8; k++) {
+                            if (board[k][j+1] == 1) {
+                                isolatedPawn = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (isolatedPawn) {
+                        count -= 20;
+                    }
                     bool passedPawn = true;   
                     if (j > 0 && j < 7) {
-                         for (int l = j-1; l <= j+1; l++) {
-                            bool isolatedPawn = true;
+                        for (int l = j-1; l <= j+1; l++) {
                             for (int k = 0; k < i; k++) {
-                                if (board[k][l] == 1 && k != j) {
-                                    isolatedPawn = false;                                    
-                                }
                                 if (board[k][l] == -1) {
                                     passedPawn = false;                                    
-                                    
                                 }
-                            }
-                            if (isolatedPawn) {
-                                count -= 20;
                             }
                         }
                     }
                     if (j == 0) {
                         for (int l = j; l <= j+1; l++) {
-                            bool isolatedPawn = true;
                             for (int k = 0; k < i; k++) {   
-                                if (board[k][l] == 1 && k != j) {
-                                    isolatedPawn = false;                                    
-                                }
                                 if (board[k][l] == -1) {
                                     passedPawn = false;                                    
-                                    
                                 }
                             }
-                            if (isolatedPawn) {
-                                count -= 20;
-                            }
-                    
                         }
                     }
                     if (j == 7) {
                         for (int l = j-1; l <= j; l++) {
-                            bool isolatedPawn = true;
                             for (int k = 0; k < i; k++) {
-                                if (board[k][l] == 1 && k != j) {
-                                    isolatedPawn = false;
-                                }
                                 if (board[k][l] == -1) {
                                     passedPawn = false;                                    
-                                    
                                 }
                             }
-                            if (isolatedPawn) {
-                                count -= 20;
-                            }
                         }
-
                     }
-                    if (passedPawn) {
-                        count += 50;
-                    }           
-                    break;
-                case -1:  
-                    count -= 100;     
-                    if (isEndGame) {
-                        count -= pawnEndgameTable[7-i][j];
+                if (passedPawn) {
+                    count += 50;
+                }           
+                break;
+            }
+            case -1: {
+                count -= 100;     
+                if (isEndGame) {
+                    count -= pawnEndgameTable[7-i][j];
+                }
+                else {
+                    count -= pawnTable[7-i][j]; 
+                }             
+                for (int k = 0; k < 8; k++) {
+                    if (k != i && board[k][j] == -1) {
+                        count += 20;
+                        break;
                     }
-                    else {
-                        count -= pawnTable[7-i][j]; 
-                    }             
+                }       
+                //check for isolated pawn and passed pawn
+                bool isolatedPawn = true;
+                if (j > 0) {
                     for (int k = 0; k < 8; k++) {
-                        if (k != i && board[k][j] == 1) {
-                            count += 20;
+                        if (board[k][j-1] == -1) {
+                            isolatedPawn = false;
                             break;
                         }
-                    }       
-                    bool passedPawn = true;   
-                    if (j > 0 && j < 7) {
-                         for (int l = j-1; l <= j+1; l++) {
-                            bool isolatedPawn = true;
-                            for (int k = 0; k < i; k++) {
-                                if (board[k][l] == -1 && k != j) {
-                                    isolatedPawn = false;                                    
-                                }
-                                if (board[k][l] == 1) {
-                                    passedPawn = false;                                    
-                                    
-                                }
-                            }
-                            if (isolatedPawn) {
-                                count += 20;
+                    }
+                }
+                if (j < 7) {
+                    for (int k = 0; k < 8; k++) {
+                        if (board[k][j+1] == -1) {
+                            isolatedPawn = false;
+                            break;
+                        }
+                    }
+                }
+                if (isolatedPawn) {
+                    count += 20;
+                }
+                bool passedPawn = true;   
+                if (j > 0 && j < 7) {
+                    for (int l = j-1; l <= j+1; l++) {
+                        for (int k = i; k < 8; k++) {
+                            if (board[k][l] == 1) {
+                                passedPawn = false;                                    
                             }
                         }
                     }
-                    if (j == 0) {
-                        for (int l = j; l <= j+1; l++) {
-                            bool isolatedPawn = true;
-                            for (int k = 0; k < i; k++) {   
-                                if (board[k][l] == -1 && k != j) {
-                                    isolatedPawn = false;                                    
-                                }
-                                if (board[k][l] == 1) {
-                                    passedPawn = false;                                    
-                                    
-                                }
-                            }
-                            if (isolatedPawn) {
-                                count += 20;
-                            }
-                    
-                        }
-                    }
-                    if (j == 7) {
-                        for (int l = j-1; l <= j; l++) {
-                            bool isolatedPawn = true;
-                            for (int k = 0; k < i; k++) {
-                                if (board[k][l] == -1 && k != j) {
-                                    isolatedPawn = false;
-                                }
-                                if (board[k][l] == 1) {
-                                    passedPawn = false;                                    
-                                    
-                                }
-                            }
-                            if (isolatedPawn) {
-                                count += 20;
+                }
+                if (j == 0) {
+                    for (int l = j; l <= j+1; l++) {
+                        for (int k = i; k < 8; k++) {   
+                            if (board[k][l] == 1) {
+                                passedPawn = false;                                    
                             }
                         }
-
                     }
-                    if (passedPawn) {
-                        count -= 50;
-                    }           
-                    break;
+                }
+                if (j == 7) {
+                    for (int l = j-1; l <= j; l++) {
+                        for (int k = i; k < 8; k++) {
+                            if (board[k][l] == 1) {
+                                passedPawn = false;                                    
+                            }
+                        }
+                    }
+                }
+                if (passedPawn) {
+                    count -= 50;
+                }           
+                break;
+                }
                     //if declare variable inside switch, we need to add {} because otherwise compiler see all cases as the same scope and get confused.
                 case 2:  {
                     count += 300;  
