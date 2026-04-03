@@ -1171,7 +1171,17 @@ bool Board::isSquareAttacked(int row, int col, bool isWhite) {
     }
     return false;
 }
- 
+
+//iterative deepening where we start from depth 1 and get best move to put into the moves we are going to go through first so it helps alpha beta pruning prune more effectively.
+Move Board::getBestMove(int maxDepth, bool isWhite) {
+    Move bestMove = {-1,-1,-1,-1};
+    for (int depth = 1; depth <= maxDepth; depth++) {
+        MoveScore result = minimax(depth, isWhite, -9999999, 9999999);
+        bestMove = result.move;
+    }
+    return bestMove;
+}
+
 //check if king is in check.
 bool Board::isInCheck(bool isWhite) {
     int kingPiece;
