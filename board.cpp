@@ -1176,6 +1176,7 @@ bool Board::isSquareAttacked(int row, int col, bool isWhite) {
 Move Board::getBestMove(int maxDepth, bool isWhite) {
     Move bestMove = {-1,-1,-1,-1};
     for (int depth = 1; depth <= maxDepth; depth++) {
+        previousBestMove = bestMove;
         MoveScore result = minimax(depth, isWhite, -9999999, 9999999);
         bestMove = result.move;
     }
@@ -1310,10 +1311,14 @@ int pieceToIndex(int piece) {
     }
 }
  
-
 int Board::scoreMovesForOrdering(Move move) {
     int score = 0;
     int capturedPiece = board[move.toRow][move.toCol];
+    //ensure best move from lowest depth get picked first so more pruning.
+    if (move.fromRow == previousBestMove.fromRow && move.fromCol == previousBestMove.fromCol &&
+        move.toRow == previousBestMove.toRow && move.toCol == previousBestMove.toCol) {
+        return 99999; 
+    }
     //we return score = 0 for empty square since for alpha beta pruning, it's going to probably be skipped anyway when it goes through captured pieces first and we are going to change it later when we figure out which square that is empty is better than another square that is better.
     if (capturedPiece != 0) {
         //we do abs regardless of color for highest capture but we also subtract from our current piece value since we want

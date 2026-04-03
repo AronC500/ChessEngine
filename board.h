@@ -33,6 +33,7 @@ class Board {
         bool hasLegalMoves(bool isWhite);
         int pieceToIndex(int piece);
         int scoreMovesForOrdering(Move move);
+        Move Board::getBestMove(int maxDepth, bool isWhite);
 
         std::vector<Move> getPawnMoves(int row, int col);
         std::vector<Move> getKnightMoves(int row, int col);
@@ -43,6 +44,8 @@ class Board {
         std::vector<Move> GenerateAllMoves(int color);
 
     private:
+        //for iterative deepning
+        Move previousBestMove;
         int board[8][8];
         //a full move consist of two half move and if there is 50 full move with no pawn moving or
         //and no piece being captured, game is draw.
@@ -165,6 +168,7 @@ class Board {
             {20,  20,  20,  20,  20,  20,  20,  20},
             {0,   0,   0,   5,   5,   0,   0,   0}
         };
+
 };
 
 //end the if statement
