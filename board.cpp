@@ -922,6 +922,14 @@ MoveScore Board::minimax(int depth, bool isWhite, int alpha, int beta) {
     if (depth == 0) {
         return {evaluate(), {-1,-1,-1,-1}};
     }
+
+    //auto to figure out type. .find returns iterator of unordered map.
+    auto it = transpositionTable.find(currentHash);
+    //we check stored depth >= depth because score could be wrong and the extra levels/depth could completely change the score.
+    if (it != transpositionTable.end() && it->second.depth >= depth) {
+        return {it->second.score, it->second.bestMove};
+    }
+
     if (isWhite) {
         int bestScore = -9999999;
         //bestMove starts as invalid sentinel. stays that way if no legal moves found (checkmate/stalemate).
@@ -975,6 +983,7 @@ MoveScore Board::minimax(int depth, bool isWhite, int alpha, int beta) {
                 continue;
             }
             anyLegal = true;
+            
             //only need the score from the recursive call, not the move it picked deeper down.
             int score = minimax(depth - 1, false, alpha, beta).score;
             undoMove(moves[i], capturedPiece, passRow, passCol);
@@ -1008,6 +1017,8 @@ MoveScore Board::minimax(int depth, bool isWhite, int alpha, int beta) {
                 return {0, {-1,-1,-1,-1}}; //stalemate, it's a draw. where king current position is not being attacked but all possible moves will leave it to be attacked.
             }
         }
+        //[] makes it so if it doesn't exist, it adds the entry. not likely to have collision so its fine.
+        transpositionTable[currentHash] = {bestScore, depth, bestMove};
         return {bestScore, bestMove};
     } else {
         int bestScore = 9999999;
@@ -1088,6 +1099,7 @@ MoveScore Board::minimax(int depth, bool isWhite, int alpha, int beta) {
                 return {0, {-1,-1,-1,-1}}; //stalemate, it's a draw.
             }
         }
+        transpositionTable[currentHash] = {bestScore, depth, bestMove};
         return {bestScore, bestMove};
     }
 }

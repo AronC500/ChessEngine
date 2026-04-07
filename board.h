@@ -18,6 +18,15 @@ struct MoveScore {
 };
 
 
+struct TranspositionEntry {
+    //return stored score instead of searching again.
+    int score;
+    //need to know if stored depth is >= current needed depth because if stored depth is less than current needed depth, stored result can be inaccurate.
+    int depth;
+    //need store move as minimax returns it.
+    Move bestMove;
+};
+
 class Board {
     public:
         Board();
@@ -44,7 +53,7 @@ class Board {
         std::vector<Move> GenerateAllMoves(int color);
 
     private:
-        //for iterative deepning
+        //for iterative deepening
         Move previousBestMove;
         int board[8][8];
         //a full move consist of two half move and if there is 50 full move with no pawn moving or
@@ -168,6 +177,10 @@ class Board {
             {20,  20,  20,  20,  20,  20,  20,  20},
             {0,   0,   0,   5,   5,   0,   0,   0}
         };
+        
+        //use zobrist hash to look up entry.
+        std::unordered_map<uint64_t, TranspositionEntry> transpositionTable;
+
 
 };
 
