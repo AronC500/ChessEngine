@@ -920,12 +920,12 @@ int Board::evaluate() {
 MoveScore Board::minimax(int depth, bool isWhite, int alpha, int beta) {
     //means we looked as far as we wanted to and we evaluate the board.
     if (depth == 0) {
-        return {evaluate(), {-1,-1,-1,-1}};
+        return { quiescence(alpha, beta, isWhite), {-1,-1,-1,-1} };
     }
 
     //auto to figure out type. .find returns iterator of unordered map.
     auto it = transpositionTable.find(currentHash);
-    //we check stored depth >= depth because score could be wrong and the extra levels/depth could completely change the score.
+    //we check stored depth >= depth because if not, score could be wrong and the extra levels/depth could completely change the score.
     if (it != transpositionTable.end() && it->second.depth >= depth) {
         return {it->second.score, it->second.bestMove};
     }
@@ -1014,10 +1014,15 @@ MoveScore Board::minimax(int depth, bool isWhite, int alpha, int beta) {
             if (isInCheck(true)) {
                 return {-9999999, {-1,-1,-1,-1}}; //checkmate, white loses.
             } else {
-                return {0, {-1,-1,-1,-1}}; //stalemate, it's a draw. where king current position is not being attacked but all possible moves will leave it to be attacked.
+                return {-100, {-1,-1,-1,-1}}; //stalemate, it's a draw. where king current position is not being attacked but all possible moves will leave it to be attacked.
             }
         }
-        //[] makes it so if it doesn't exist, it adds the entry. not likely to have collision so its fine.
+       
+        //no cutoff occurred
+        if (beta > alpha) {  
+            //[] makes it so if it doesn't exist, it adds the entry. not likely to have collision so its fine.
+            transpositionTable[currentHash] = {bestScore, depth, bestMove};
+        }
         transpositionTable[currentHash] = {bestScore, depth, bestMove};
         return {bestScore, bestMove};
     } else {
@@ -1096,10 +1101,15 @@ MoveScore Board::minimax(int depth, bool isWhite, int alpha, int beta) {
             if (isInCheck(false)) {
                 return {9999999, {-1,-1,-1,-1}}; //checkmate, black loses.
             } else {
-                return {0, {-1,-1,-1,-1}}; //stalemate, it's a draw.
+                return {-100, {-1,-1,-1,-1}}; //stalemate, it's a draw.
             }
         }
-        transpositionTable[currentHash] = {bestScore, depth, bestMove};
+       
+        //no cutoff occurred
+        if (beta > alpha) {  
+            //[] makes it so if it doesn't exist, it adds the entry. not likely to have collision so its fine.
+            transpositionTable[currentHash] = {bestScore, depth, bestMove};
+        }        
         return {bestScore, bestMove};
     }
 }
@@ -1292,7 +1302,7 @@ bool Board::hasLegalMoves(bool isWhite) {
 }
  
 //for when you get board square current piece and can use that as index in randomTable to get that piece's random number
-int pieceToIndex(int piece) {
+int Board::pieceToIndex(int piece) {
     switch(piece) {
         case 1:  
             return 0;  //white pawn
@@ -1338,4 +1348,121 @@ int Board::scoreMovesForOrdering(Move move) {
         score += 10 * abs(capturedPiece) - abs(board[move.fromRow][move.fromCol]);
     }
     return score;
+}
+
+
+int Board::quiescence(int alpha, int beta, bool isWhite) {
+    int currentScore = evaluate();
+
+    //this position is too good for current side that opposite side won't allow it
+    //so no point to search for captures. we dont know real score but we know its atleast beta so we return beta.
+    if (currentScore >= beta) {
+        return beta;
+    }
+    //store better position
+    if (currentScore > alpha) {
+        alpha = currentScore;
+    }
+
+    int color;
+    if (isWhite) {
+        color = 1;
+    }
+    else {
+        color = -1;
+    }
+    std::vector<Move> moves = GenerateAllMoves(color);
+
+    for (int i = 0; i < moves.size(); i++) {
+        int capturedPiece = board[moves[i].toRow][moves[i].toCol];
+        //skips moves that aren't capture.
+        if (capturedPiece == 0) {
+            continue;
+        }
+
+        passRow = -1;
+        passCol = -1;
+        if (EnPassantRow != -1 && EnPassantCol != -1 && abs(board[moves[i].fromRow][moves[i].fromCol]) == 1 && (moves[i].toRow == EnPassantRow && moves[i].toCol == EnPassantCol)) {
+            passRow = moves[i].fromRow;
+            passCol = EnPassantCol;
+        }
+
+        int savedHalfMove = halfMoveCount;
+        int savedEPRow = EnPassantRow;
+        int savedEPCol = EnPassantCol;
+        bool savedWhiteKingMoved = WhiteKingMoved;
+        bool savedWhiteKingSideRookMoved = WhiteKingSideRookMoved;
+        bool savedWhiteQueenSideRookMoved = WhiteQueenSideRookMoved;
+        bool savedBlackKingMoved = BlackKingMoved;
+        bool savedBlackKingSideRookMoved = BlackKingSideRookMoved;
+        bool savedBlackQueenSideRookMoved = BlackQueenSideRookMoved;
+
+        makeMove(moves[i]);
+
+        if (isInCheck(isWhite)) {
+            undoMove(moves[i], capturedPiece, passRow, passCol);
+            halfMoveCount = savedHalfMove;
+            EnPassantRow = savedEPRow;
+            EnPassantCol = savedEPCol;
+            WhiteKingMoved = savedWhiteKingMoved;
+            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+            BlackKingMoved = savedBlackKingMoved;
+            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
+            continue;
+        }
+
+        int score;
+
+        if (isWhite) {
+            score = quiescence(alpha, beta, false);   
+
+            undoMove(moves[i], capturedPiece, passRow, passCol);
+            halfMoveCount = savedHalfMove;
+            EnPassantRow = savedEPRow;
+            EnPassantCol = savedEPCol;
+            WhiteKingMoved = savedWhiteKingMoved;
+            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+            BlackKingMoved = savedBlackKingMoved;
+            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
+
+            if (score >= beta) {        
+                return beta;
+            }
+            if (score > alpha) {        
+                alpha = score;
+            }
+        }
+        else {
+            score = quiescence(alpha, beta, true);    
+
+            undoMove(moves[i], capturedPiece, passRow, passCol);
+            halfMoveCount = savedHalfMove;
+            EnPassantRow = savedEPRow;
+            EnPassantCol = savedEPCol;
+            WhiteKingMoved = savedWhiteKingMoved;
+            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+            BlackKingMoved = savedBlackKingMoved;
+            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
+
+            if (score <= alpha) {       
+                return alpha;
+            }
+            if (score < beta) {         
+                beta = score;
+            }
+        }
+    }
+
+    if (isWhite) {
+        return alpha;
+    }
+    else {
+        return beta;
+    }
 }

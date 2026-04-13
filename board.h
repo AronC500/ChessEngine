@@ -2,6 +2,8 @@
 #ifndef BOARD_H
 #define BOARD_H
 #include <vector>
+#include <unordered_map>
+
 
 //need because we need to generate all possible move and store them in vector and pick the best one.
 struct Move {
@@ -34,7 +36,7 @@ class Board {
         void makeMove(Move m);
         void undoMove(Move m, int capturedPiece, int enPassantCaptureRow, int enPassantCaptureCol);
         int evaluate();
-        MoveScore Board::minimax(int depth, bool isWhite, int alpha, int beta);
+        MoveScore minimax(int depth, bool isWhite, int alpha, int beta);
         bool isSquareAttacked(int row, int col, bool isWhite);
         bool isInCheck(bool isWhite);
         bool isDraw(bool isWhite);
@@ -42,7 +44,9 @@ class Board {
         bool hasLegalMoves(bool isWhite);
         int pieceToIndex(int piece);
         int scoreMovesForOrdering(Move move);
-        Move Board::getBestMove(int maxDepth, bool isWhite);
+        Move getBestMove(int maxDepth, bool isWhite);
+        int quiescence(int alpha, int beta, bool isWhite);
+
 
         std::vector<Move> getPawnMoves(int row, int col);
         std::vector<Move> getKnightMoves(int row, int col);
@@ -51,6 +55,9 @@ class Board {
         std::vector<Move> getQueenMoves(int row, int col);
         std::vector<Move> getKingMoves(int row, int col);
         std::vector<Move> GenerateAllMoves(int color);
+                
+
+
 
     private:
         //for iterative deepening
