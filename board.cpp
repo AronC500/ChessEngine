@@ -1354,14 +1354,26 @@ int Board::scoreMovesForOrdering(Move move) {
 int Board::quiescence(int alpha, int beta, bool isWhite) {
     int currentScore = evaluate();
 
-    //this position is too good for current side that opposite side won't allow it
-    //so no point to search for captures. we dont know real score but we know its atleast beta so we return beta.
-    if (currentScore >= beta) {
-        return beta;
-    }
-    //store better position
-    if (currentScore > alpha) {
-        alpha = currentScore;
+    if (isWhite) {
+        //this position is too good for current side that opposite side won't allow it
+        //so no point to search for captures. we dont know real score but we know its atleast beta so we return beta.
+        if (currentScore >= beta) {
+            return beta;
+        }
+        //store better position
+        if (currentScore > alpha) {
+            alpha = currentScore;
+        }
+    } else {
+        //this position is too good for black that white won't allow it
+        //so no point to search for captures. we dont know real score but we know its atleast alpha so we return alpha.
+        if (currentScore <= alpha) {
+            return alpha;
+        }
+        //store better position
+        if (currentScore < beta) {
+            beta = currentScore;
+        }
     }
 
     int color;
@@ -1399,66 +1411,46 @@ int Board::quiescence(int alpha, int beta, bool isWhite) {
 
         makeMove(moves[i]);
 
-        if (isInCheck(isWhite)) {
-            undoMove(moves[i], capturedPiece, passRow, passCol);
-            halfMoveCount = savedHalfMove;
-            EnPassantRow = savedEPRow;
-            EnPassantCol = savedEPCol;
-            WhiteKingMoved = savedWhiteKingMoved;
-            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
-            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
-            BlackKingMoved = savedBlackKingMoved;
-            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
-            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
+        bool inCheck = isInCheck(isWhite);
+        int score = 0;
+
+        if (!inCheck) {
+            score = quiescence(alpha, beta, !isWhite);
+        }
+
+        undoMove(moves[i], capturedPiece, passRow, passCol);
+        halfMoveCount = savedHalfMove;
+        EnPassantRow = savedEPRow;
+        EnPassantCol = savedEPCol;
+        WhiteKingMoved = savedWhiteKingMoved;
+        WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
+        WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
+        BlackKingMoved = savedBlackKingMoved;
+        BlackKingSideRookMoved = savedBlackKingSideRookMoved;
+        BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
+
+        if (inCheck) {
             continue;
         }
 
-        int score;
-
         if (isWhite) {
-            score = quiescence(alpha, beta, false);   
-
-            undoMove(moves[i], capturedPiece, passRow, passCol);
-            halfMoveCount = savedHalfMove;
-            EnPassantRow = savedEPRow;
-            EnPassantCol = savedEPCol;
-            WhiteKingMoved = savedWhiteKingMoved;
-            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
-            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
-            BlackKingMoved = savedBlackKingMoved;
-            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
-            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
-
-            if (score >= beta) {        
+            if (score >= beta) {
                 return beta;
             }
-            if (score > alpha) {        
+            if (score > alpha) {
                 alpha = score;
             }
         }
         else {
-            score = quiescence(alpha, beta, true);    
-
-            undoMove(moves[i], capturedPiece, passRow, passCol);
-            halfMoveCount = savedHalfMove;
-            EnPassantRow = savedEPRow;
-            EnPassantCol = savedEPCol;
-            WhiteKingMoved = savedWhiteKingMoved;
-            WhiteKingSideRookMoved = savedWhiteKingSideRookMoved;
-            WhiteQueenSideRookMoved = savedWhiteQueenSideRookMoved;
-            BlackKingMoved = savedBlackKingMoved;
-            BlackKingSideRookMoved = savedBlackKingSideRookMoved;
-            BlackQueenSideRookMoved = savedBlackQueenSideRookMoved;
-
-            if (score <= alpha) {       
+            if (score <= alpha) {
                 return alpha;
             }
-            if (score < beta) {         
+            if (score < beta) {
                 beta = score;
             }
         }
     }
-
+    //best score white found after all capture
     if (isWhite) {
         return alpha;
     }
